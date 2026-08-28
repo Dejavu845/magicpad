@@ -1,0 +1,55 @@
+# Swift / SwiftPM
+.build/
+.swiftpm/
+Package.resolved
+*.xcodeproj/
+*.xcworkspace/
+DerivedData/
+*.xcuserstate
+
+# App bundle 输出(scripts/build_app.sh 产物)
+build/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE / local agents
+.vscode/
+.idea/
+.cursor/
+.grok/
+*.swp
+__pycache__/
+*.pyc
+
+# Logs / runtime
+*.log
+server.pid
+nohup.out
+
+# Test outputs
+*.xcresult/
+
+# Local config
+.env
+.env.local
+
+# Whisper Core ML weights (optional bundle; first-run also caches in Application Support)
+vendor/whisper/
+
+# Local notes — never publish (IPs, paths, session logs)
+BACKLOG.md
+docs/SESSION-NIGHT-LOG.md
+docs/HANDOFF*.md
+docs/overnight-lanes/
+docs/OVERNIGHT*.md
+docs/HOUR-PLAN*.md
+docs/AUTONOMY*.md
+docs/DELIVERY-SCORECARD.md
+docs/WORKFLOWS-STATUS.md
+docs/RESEARCH-CONTINUITY.md
+docs/RESEARCH-UX.md
+docs/SMOKE-NIGHT.md
+scripts/overnight-voice-*.sh
