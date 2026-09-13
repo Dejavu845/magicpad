@@ -27,6 +27,8 @@ Service flags, ports, RFC1918 IPs currently bound, `htmlRev`, inject/gesture cou
 
 This no-home-path promise is **scoped to `GET /health` JSON**. HTML 404/503 bodies (`fallbackHTML`) may still interpolate the request path and, when `index.html` is missing, `StaticFileLocator.indexHTMLCandidates()` (bundle/source paths, including `/Users/<name>` example-path). Those pages are not covered by the `/health` smoke assertions.
 
+A pairing token on the QR / `hello` is optional and default-off. **Never put a pairing token in `/health`.**
+
 ## Intentional fail-closed Origin rejects
 
 Exact-set host match, no IPv4/IPv6 normalization. These are **rejected on purpose** — do not "fix" them into host canonicalization:

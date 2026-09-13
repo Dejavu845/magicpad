@@ -28,6 +28,25 @@ Phases: 0 down · 1 move · 2 up · 3 cancel · 10 double · 11 right · 20 scro
 
 Unknown JSON `type` is ignored. Non-object / non-string `type` is ignored.
 
+### `voice_ack` reasons (MP-12)
+
+| `reason` | `ok` | Meaning |
+|---|---|---|
+| `append` / `replace` | true | Clipboard wrote; paste if AX on |
+| `voice_truncated` | true | Prefix of 20000 graphemes wrote; remainder dropped |
+| `rate_limited` | false | Cycle 13 token bucket; no inject |
+| `empty` / `bad_voice` | false | Missing or non-string `text` |
+| `ax_denied` / `ax_denied_clipboard_ok` | false / mixed | Need Accessibility; clipboard may still have held |
+| `empty_action` / `bad_action` / `bad_count` / `unknown_action` | false | `key` parse |
+| `empty_type` / `bad_type` / `type` / `type_truncated` | mixed | `type`/`text` clamp |
+| `launchpad_fail` / `showDesktop_fail` / `notificationCenter_fail` / `clipboard` | false | System key or pasteboard write |
+
+### `classify` (telemetry only)
+
+Inbound `kind` / `reason` / `phase` (optional `net` `path` `ms` `scale`). Ack `classify_ack`. **Never injects.**
+
+A pairing token on QR / `hello` is optional and default-off. Never put a token in `/health`.
+
 `maxVoiceChars` is 20000 while `maxTypeChars` is 2000 because voice lands on the pasteboard and is not `keySerial`-bound. Type injects keystrokes on the inject serial. Cycle 13 meters `type` / `text` / `voice` with `JSONRateLimit` (40/s, burst 80). Over the burst the ack is `voice_ack{ok:false, reason:rate_limited}` and nothing is injected. `key` / `ping` / `hello` / `stt` / `classify` and every binary 13/18-byte frame are **not** metered.
 
 ## HTTP
