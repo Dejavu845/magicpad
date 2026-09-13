@@ -179,3 +179,19 @@ class HeaderValueTests(unittest.TestCase):
         blob = "GET / HTTP/1.1\r\nOrigin:\r\n\r\n"
         self.assertEqual(header_value(blob, "origin"), "")
         self.assertTrue(origin_allowed(header_value(blob, "origin"), []))
+
+
+class SmokeWsArgTests(unittest.TestCase):
+    def test_expect_reject_flag(self):
+        import importlib.util
+
+        path = os.path.join(HERE, "smoke-ws.py")
+        spec = importlib.util.spec_from_file_location("smoke_ws", path)
+        mod = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(mod)
+        args = mod.parse_args(["--origin", "http://evil.example", "--expect-reject"])
+        self.assertTrue(args.expect_reject)
+        self.assertEqual(args.origin, "http://evil.example")
+        args2 = mod.parse_args([])
+        self.assertFalse(args2.expect_reject)
