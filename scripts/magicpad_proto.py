@@ -428,6 +428,7 @@ WS_TYPES = frozenset(
 
 CLASSIFY_INJECTS = False
 CLASSIFY_IS_HEALTH_KEY = False
+CLASSIFY_HTTP_PATH = None
 
 
 def parse_classify_kind(raw: str | None) -> str | None:
