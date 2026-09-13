@@ -77,6 +77,14 @@ A pairing token on QR / `hello` is optional and default-off. Never put a token i
 
 Never hostname, home path, SSID, user, or payload text. `binaryPath` is `MagicPad.app` only.
 
+### `stt` JSON (MP-12)
+
+Inbound: `type=stt`, `action` ∈ `start`/`begin`/`on` · `stop`/`end`/`off` · `status`. Optional `lang` (zh-CN / en-US / ja-JP; else zh-CN). Optional `onDevice` JSON bool (else true). Unknown action → `stt_final{ok:false, reason:bad_action}` (no inject).
+
+`stt_status` (status / live): `state` listening|idle|already, `lang`, `engine` whisper|apple, optional `auth` `onDeviceSupported` `whisperReady` `whisperModel`.
+
+`stt_final`: `ok`, `text`, `reason` (table below), `lang`, `engine` whisper|apple|none, `onDevice` true on success. Cloud Apple Speech is not a fallback (`no_on_device_stt`).
+
 ## `stt_final` reasons
 
 | `reason` | Meaning |
