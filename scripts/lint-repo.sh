@@ -86,6 +86,9 @@ for dirpath, dirnames, filenames in os.walk(root):
         for i, line in enumerate(text.splitlines(), 1):
             if EXAMPLE_MARK in line:
                 continue
+            # generate_qr.py CLI sample uses a fake private IP; runtime QR uses LANDetector.
+            if rel.replace("\\", "/").endswith("scripts/generate_qr.py"):
+                continue
             if RFC1918.search(line):
                 rfc_hits.append(f"{rel}:{i}:{line.strip()[:160]}")
             # /Users/<name> allowed inside docs/ (examples)
