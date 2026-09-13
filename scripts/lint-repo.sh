@@ -45,8 +45,8 @@ else
 fi
 
 # --- 4b. Cycle 21/23 locks (small files; do not grow test-protocol.py) ---
-if python3 -m unittest scripts/test_cycle21_qr.py scripts/test_cycle23_stt.py scripts/test_cycle24_stt_lang.py scripts/test_cycle25_stt_ondevice.py scripts/test_cycle26_binary.py scripts/test_cycle27_wstype.py -q; then
-  pass "unittest cycle 21/23/24/25/26/27 small files"
+if python3 -m unittest scripts/test_cycle21_qr.py scripts/test_cycle23_stt.py scripts/test_cycle24_stt_lang.py scripts/test_cycle25_stt_ondevice.py scripts/test_cycle26_binary.py scripts/test_cycle27_wstype.py scripts/test_cycle28_lan.py -q; then
+  pass "unittest cycle 21/23/24/25/26/27/28 small files"
 else
   fail_step "unittest cycle 21/23/24/25 small files"
 fi
