@@ -464,6 +464,12 @@ def parse_stt_action(raw: str | None) -> str | None:
 PAIRING_ENV = "MAGICPAD_PAIRING_TOKEN"
 PAIRING_HELLO_FIELD = "pair"
 PAIRING_REJECTED = "pairing_rejected"
+FORBIDDEN_HEALTH_KEYS = frozenset({PAIRING_HELLO_FIELD, PAIRING_ENV})
+
+
+def health_allows_key(key: str) -> bool:
+    """Cycle 29: pairing hatch is hello-only. Never a /health key."""
+    return key not in FORBIDDEN_HEALTH_KEYS
 
 
 def pairing_configured(env: dict[str, str] | None = None) -> str | None:
