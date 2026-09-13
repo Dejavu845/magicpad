@@ -10,6 +10,8 @@ public enum Classify {
     public static let injects = false
     /// Cycle 32: telemetry type only. Never a GET /health key.
     public static let isHealthKey = false
+    /// Cycle 33: WS telemetry only. There is no HTTP /classify route.
+    public static let httpPath: String? = nil
 
     public static func parseKind(_ raw: String?) -> String? {
         let key = (raw ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
