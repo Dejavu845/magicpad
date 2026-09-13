@@ -30,7 +30,7 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 |---|---|---|---|
 | MP-02 | P0 | WRITE | `ProtocolLimits` + Python mirror. **Not wired** into `parseFrame` / handshake (`docs/CYCLE4-WIRING.md`). |
 | MP-04 echo | P0 | WRITE | `CORSPolicy.accessControl` — echo allowlist / omit / `*` plus `needsVary`. **Not the write control.** |
-| H1 helper | P0 | WRITE | `HTMLEscape.escape` + CSP/nosniff constants for `fallbackHTML`. |
+| H1 helper | P0 | WRITE | `HTMLEscape.escape` + CSP/nosncript constants for `fallbackHTML`. |
 | MP-17 seed | P1 | WRITE | `JSONText.encode` (sorted keys). |
 | MP-18 seed | P2 | WRITE | `LANAddress.isPrivate` + `Filenames.sanitize` + Python mirrors. |
 
@@ -50,7 +50,7 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 | C4-H2 | P0 | YES | 503 must use `sourceLabel()`, not `indexHTMLCandidates()` paths (home-path rule) |
 | C4-H3 | P1 | YES | `test-protocol.py` reads `ProtocolLimits.swift` / `HTMLEscape.swift`; `lan-vectors.json` + `filename-vectors.json` |
 | C4-M1/M3 | P1 | WRITE | `LANAddress` / Python require four octets and `0...255`; `LANDetector.isPrivate` delegates |
-| C4-M2/N2 | P1 | WRITE | Unicode filenames; `\` is a separator; truncate keeps suffix; `FileDropPasteboard` calls `Filenames.sanitize` |
+| C4-M2/N2 | P1 | WRITE | Unicode filenames; `\\` is a separator; truncate keeps suffix; `FileDropPasteboard` calls `Filenames.sanitize` |
 | C4-M4/M6 | P1 | WRITE | `ProtocolLimits` type/voice caps read `KeyProtocol`; header says 1 MiB / 16 KiB are new |
 | C4-M5/M7/M8 | P1 | YES | PROTOCOL opcode/version caveats; CORS `needsVary`; CSP `style-src 'unsafe-inline'` |
 
@@ -127,6 +127,12 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 | MP-15 | P1 | YES | Single visually-hidden `<h1>`, voice `<h2>`, tablist/tab/tabpanel, pad `role="application"`, `:focus-visible`, `#voiceStatus` live, statusBar `aria-label`. `check-html.py` those checks are FAIL. `index.html` local-only (do not MCP-upload). |
 | MP-16 | P1 | YES | Debounced `syncLayoutSoon` (80 ms) on `resize` / `visualViewport.resize`. 44/48 px min-size guard; kb-open draft bar exempt. |
 | MP-19 | P2 | YES | `AppVersion.string` in `Version.swift`; `build_app.sh` greps it and uses `swift build --show-bin-path`. |
+
+## Cycle 33 — classify has no HTTP route
+
+| ID | Linux | What |
+|---|---|---|
+| MP-12 | YES | `Classify.httpPath = nil` + `CLASSIFY_HTTP_PATH = None`. PROTOCOL HTTP table has `/stt` `/drop` `/health` and no `/classify`. Tests in `scripts/test_cycle33_classify_http.py`. |
 
 ## Cycle 32 — classify never a /health key
 
@@ -252,12 +258,12 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 | ID | Linux | Next step |
 |---|---|---|
 | MP-11 | WRITE | Additive `proto: 1` on local `hello` / `hello_ack` / `/health` (Cycle 10). Remote stub unrestored. |
-| MP-12 | YES | Cycle 19: `stt` JSON fields. Cycle 20 pairing hatch. Cycle 21–22: QR never embeds token. Cycle 23–25: STT action / lang / onDevice in Core. Cycle 30: classify never injects. Cycle 32: classify never a `/health` key. |
+| MP-12 | YES | Cycle 19: `stt` JSON fields. Cycle 20 pairing hatch. Cycle 21–22: QR never embeds token. Cycle 23–25: STT action / lang / onDevice in Core. Cycle 30: classify never injects. Cycle 32: classify never a `/health` key. Cycle 33: no HTTP `/classify`. |
 | MP-13 | WRITE | Cycle 11: logs count/reason only (no `text.prefix`); `Logger` sets `0600` on `/tmp/magicpad-server.log`. EventInjector redact is local-only (63 KB). |
 | MP-14 | WRITE | Cycle 12: refuse `no_on_device_stt` when Whisper missing and Apple on-device unsupported. Remote SpeechSession unrestored until human push. |
 | MP-15 | YES | Cycle 14: tablist / h1 / `:focus-visible` / application. `index.html` unrestored on remote until human push. |
 | MP-16 | YES | Cycle 14: `syncLayoutSoon` + 44/48 px guard. Same `index.html` human push. |
-| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\/`). Remote stub unrestored. |
+| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\\/`). Remote stub unrestored. |
 
 ## Leftover P2
 
