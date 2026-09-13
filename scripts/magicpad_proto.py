@@ -379,6 +379,18 @@ STT_STOP = frozenset({"stop", "end", "off"})
 STT_STATUS = frozenset({"status"})
 
 
+STT_LANGS = frozenset({"zh-CN", "en-US", "ja-JP"})
+STT_LANG_FALLBACK = "zh-CN"
+
+
+def parse_stt_lang(raw: str | None) -> str:
+    """Cycle 24: Core STTLang.parse mirror. Unknown → zh-CN."""
+    key = (raw or "").strip()
+    if key in STT_LANGS:
+        return key
+    return STT_LANG_FALLBACK
+
+
 def parse_stt_action(raw: str | None) -> str | None:
     """Cycle 23: Core STTAction.parse mirror. Unknown → None (bad_action)."""
     key = (raw or "").strip().lower()
