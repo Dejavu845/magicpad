@@ -275,6 +275,33 @@ class Cycle8HTTPOriginSmokeLockTests(unittest.TestCase):
         self.assertIn("Origin: http://127.0.0.1:7878", raw)
 
 
+class Cycle12OnDeviceSTTTests(unittest.TestCase):
+    """MP-14: never fall back to cloud Apple Speech."""
+
+    def test_speech_session_refuses_cloud_apple(self):
+        path = os.path.join(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Sources",
+            "MagicPadServer",
+            "SpeechSession.swift",
+        )
+        raw = Path(path).read_text(encoding="utf-8")
+        live = _swift_live(raw)
+        self.assertIn('"no_on_device_stt"', live)
+        self.assertIn("func hasOnDeviceSTT", live)
+        self.assertNotIn("requiresOnDeviceRecognition = false", live)
+        proto = Path(os.path.dirname(HERE), "docs", "PROTOCOL.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("`no_on_device_stt`", proto)
+        sec = Path(os.path.dirname(HERE), "docs", "SECURITY.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("requiresOnDeviceRecognition = false", sec)
+        self.assertIn("no_on_device_stt", sec)
+
+
 class Cycle11LogRedactTests(unittest.TestCase):
     """MP-13: do not log voice/type payload text; log file is 0600."""
 
