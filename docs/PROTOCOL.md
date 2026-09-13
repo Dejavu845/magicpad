@@ -87,7 +87,7 @@ Never hostname, home path, SSID, user, or payload text. `binaryPath` is `MagicPa
 
 ### `stt` JSON (MP-12)
 
-Inbound: `type=stt`, `action` ∈ `start`/`begin`/`on` · `stop`/`end`/`off` · `status`. Optional `lang` (zh-CN / en-US / ja-JP; else zh-CN). Optional `onDevice` JSON bool (else true). Unknown action → `stt_final{ok:false, reason:bad_action}` (no inject). Cycle 23: aliases are `STTAction.parse` / `parse_stt_action`. Cycle 24: `lang` is `STTLang.parse` / `parse_stt_lang` (unknown → zh-CN). Local hello wire uses Core; remote stub unrestored.
+Inbound: `type=stt`, `action` ∈ `start`/`begin`/`on` · `stop`/`end`/`off` · `status`. Optional `lang` (zh-CN / en-US / ja-JP; else zh-CN). Optional `onDevice` JSON bool (else true). Unknown action → `stt_final{ok:false, reason:bad_action}` (no inject). Cycle 23: `STTAction.parse`. Cycle 24: `STTLang.parse`. Cycle 25: `STTOnDevice.parse` (JSON bool only; else true). Local wire uses Core; remote stub unrestored.
 
 `stt_status` (status / live): `state` listening|idle|already, `lang`, `engine` whisper|apple, optional `auth` `onDeviceSupported` `whisperReady` `whisperModel`.
 
