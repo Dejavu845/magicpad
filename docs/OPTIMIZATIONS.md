@@ -132,7 +132,7 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 
 | ID | Pri | Linux | What landed |
 |---|---|---|---|
-| pairing | P2 | YES | `PairingToken.qrURLIsSafe` + `qr_url_is_safe`. `generate_qr.py` refuses `--pair` and any URL with `pair=` / env name / env value. `check-html.py` FAILs on `pair=`. Runtime mobileURL still scheme/host/port + optional auto. |
+| pairing | P2 | YES | `PairingToken.qrURLIsSafe` + `qr_url_is_safe`. `generate_qr.py` refuses `--pair` and any URL with `pair=` / env name / env value. `check-html.py` FAILs on `pair=`. Tests live in `scripts/test_cycle21_qr.py` (do not grow `test-protocol.py`). Runtime mobileURL still scheme/host/port + optional auto. |
 
 ## Cycle 20 — optional pairing hatch (default off)
 
@@ -191,7 +191,7 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 | MP-14 | WRITE | Cycle 12: refuse `no_on_device_stt` when Whisper missing and Apple on-device unsupported. Remote SpeechSession unrestored until human push. |
 | MP-15 | YES | Cycle 14: tablist / h1 / `:focus-visible` / application. `index.html` unrestored on remote until human push. |
 | MP-16 | YES | Cycle 14: `syncLayoutSoon` + 44/48 px guard. Same `index.html` human push. |
-| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\/`). Remote stub unrestored. |
+| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\\/`). Remote stub unrestored. |
 
 ## Leftover P2
 
