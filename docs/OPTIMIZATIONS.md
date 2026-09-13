@@ -128,6 +128,12 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 | MP-16 | P1 | YES | Debounced `syncLayoutSoon` (80 ms) on `resize` / `visualViewport.resize`. 44/48 px min-size guard; kb-open draft bar exempt. |
 | MP-19 | P2 | YES | `AppVersion.string` in `Version.swift`; `build_app.sh` greps it and uses `swift build --show-bin-path`. |
 
+## Cycle 39 — WS types are names, not HTTP paths
+
+| ID | Linux | What |
+|---|---|---|
+| MP-12 | YES | `ws_types_are_names_not_paths`. `classify`/`hello`/`ping` are not routes. `stt` stays the one WS type with `POST /stt`. Tests in `scripts/test_cycle39_ws_names.py`. |
+
 ## Cycle 38 — HTTP route list is closed
 
 | ID | Linux | What |
