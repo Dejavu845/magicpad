@@ -37,7 +37,7 @@ struct MagicPadServerApp: App {
                         .font(.system(size: 13, weight: .semibold))
                         .tracking(-0.2)
                     Spacer()
-                    Text("v0.1.0")
+                    Text("v\(AppVersion.string)")
                         .font(.system(size: 10, weight: .regular, design: .monospaced))
                         .foregroundStyle(.tertiary)
                 }
@@ -390,7 +390,7 @@ private func showAbout() {
     alert.informativeText = """
         iPhone 触控板 + 语音直达 Mac。
 
-        版本 0.1.0
+        版本 \(AppVersion.string)
         手机: \(lan.httpUrl)
         HTTPS: \(lan.httpsUrl)
         """
