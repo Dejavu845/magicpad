@@ -202,9 +202,10 @@ MAX_TYPE_CHARS = 2000
 MAX_VOICE_CHARS = 20_000
 PROTO = 1
 REQUIRED_WS_VERSION = "13"
-ALLOWED_OPCODES = frozenset({0x1, 0x2, 0x8, 0x9, 0xA})
+ALLOWED_OPCODES = frozenset({0x0, 0x1, 0x2, 0x8, 0x9, 0xA})
 CLOSE_MESSAGE_TOO_BIG = 1009
 CLOSE_UNSUPPORTED_DATA = 1003
+ERROR_PAGE_CSP = "default-src 'none'; style-src 'unsafe-inline'"
 
 
 def html_escape(raw: str) -> str:
@@ -225,15 +226,24 @@ def html_escape(raw: str) -> str:
     return "".join(out)
 
 
-def cors_allow_origin(origin: str | None, lan_ips: list[str] | None = None) -> str | None:
+def cors_allow(origin: str | None, lan_ips: list[str] | None = None) -> tuple[str, bool] | None:
+    """Mirror of CORSPolicy.accessControl. None → omit ACAO.
+
+    Returns (allowOrigin, needsVary). `*` has needsVary False.
+    """
     if origin is None:
-        return "*"
+        return ("*", False)
     trimmed = origin.strip()
     if not trimmed:
-        return "*"
+        return ("*", False)
     if origin_allowed(origin, lan_ips):
-        return trimmed
+        return (trimmed, True)
     return None
+
+
+def cors_allow_origin(origin: str | None, lan_ips: list[str] | None = None) -> str | None:
+    got = cors_allow(origin, lan_ips)
+    return None if got is None else got[0]
 
 
 def is_private_ipv4(ip: str) -> bool:
@@ -243,6 +253,8 @@ def is_private_ipv4(ip: str) -> bool:
     try:
         nums = [int(p) for p in parts]
     except ValueError:
+        return False
+    if any(n < 0 or n > 255 for n in nums):
         return False
     if nums[0] == 127:
         return False
@@ -259,13 +271,19 @@ def is_private_ipv4(ip: str) -> bool:
 
 def sanitize_filename(raw: str) -> str:
     import os
-    import re
 
-    name = raw.strip()
-    name = os.path.basename(name.replace("\\", "/"))
-    name = re.sub(r"[^A-Za-z0-9._\- ()[\]]", "_", name)
+    name = raw.strip().replace("\\", "/").rstrip("/")
+    name = os.path.basename(name)
+    name = "".join(ch if (ch.isalnum() or ch in "._- ()[]") else "_" for ch in name)
     if len(name) > 120:
-        name = name[:120]
-    if not name or name in {".", ".."}:
+        root, ext = os.path.splitext(name)
+        if ext:
+            keep = max(1, 120 - len(ext))
+            name = root[:keep] + ext
+            if len(name) > 120:
+                name = name[:120]
+        else:
+            name = name[:120]
+    if not name or name in {".", "..", "..."}:
         return "magicpad-file.bin"
     return name
