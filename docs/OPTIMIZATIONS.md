@@ -107,6 +107,13 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 
 Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upload `WebSocketServer.swift`, `EventInjector.swift`, `index.html`, or `scripts/smoke-all.sh`.
 
+## Cycle 12 — MP-14 refuse cloud Apple Speech
+
+| ID | Pri | Linux | What landed |
+|---|---|---|---|
+| MP-14 | P1 | WRITE | `SpeechSession.hasOnDeviceSTT`: Whisper `isReady`/`isCached` or Apple `supportsOnDeviceRecognition`. Else `no_on_device_stt` on live start and `POST /stt`. Live/file Apple paths never set `requiresOnDeviceRecognition = false`. |
+| MP-12 | P1 | YES | PROTOCOL `stt_final` reason table; SECURITY on-device-only paragraph. |
+
 ## Leftover P0
 
 None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
@@ -122,7 +129,7 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 | MP-11 | WRITE | Additive `proto: 1` on local `hello` / `hello_ack` / `/health` (Cycle 10). Remote stub unrestored. |
 | MP-12 | YES | Expand PROTOCOL + SECURITY to the full field/limit tables |
 | MP-13 | WRITE | Cycle 11: logs count/reason only (no `text.prefix`); `Logger` sets `0600` on `/tmp/magicpad-server.log`. EventInjector redact is local-only (63 KB). |
-| MP-14 | WRITE | If Whisper missing and Apple on-device STT unsupported, refuse (`no_on_device_stt`) |
+| MP-14 | WRITE | Cycle 12: refuse `no_on_device_stt` when Whisper missing and Apple on-device unsupported. Remote SpeechSession unrestored until human push. |
 | MP-15 | YES | Web a11y: tablist, single `<h1>`, `:focus-visible`, pad `role="application"` |
 | MP-16 | YES | Debounced resize → layout tokens; 44/48 px touch targets |
 | MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\/`). Remote stub unrestored. |
