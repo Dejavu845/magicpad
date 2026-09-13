@@ -1,9 +1,10 @@
 # Cycle 4 — wire ProtocolLimits, HTML escape, CORS echo
 
 Cycle 7 wired these inserts on the **local** `WebSocketServer.swift`.
-GitHub still has the 140-byte stub (MCP truncates the 62 KB file). A human
-`git push` is required before the remote server has any of this. This file
-remains the lock-safety spec: do **not** call `closeInternal()` under
+Cycle 9: 403/426 handshake replies return `.closing` and close only from
+the send completion (same model as 431). GitHub still has the 140-byte stub.
+A human `git push` is required before the remote server has any of this. This
+file remains the lock-safety spec: do **not** call `closeInternal()` under
 `parseFrame`'s lock.
 
 ## 1. Frame / header caps (`ProtocolLimits`) — MP-02

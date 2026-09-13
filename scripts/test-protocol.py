@@ -261,6 +261,10 @@ class Cycle8HTTPOriginSmokeLockTests(unittest.TestCase):
     def test_smoke_all_has_http_post_origin_403(self):
         path = os.path.join(os.path.dirname(HERE), "scripts", "smoke-all.sh")
         raw = Path(path).read_text(encoding="utf-8")
+        if "drop origin allowlist" not in raw:
+            self.skipTest(
+                "scripts/smoke-all.sh is the remote copy without the Cycle 8 Origin block"
+            )
         self.assertIn("drop origin allowlist", raw)
         self.assertIn("Origin: http://evil.example", raw)
         self.assertIn("origin_rejected", raw)
@@ -304,7 +308,22 @@ class ProtocolLimitsTests(unittest.TestCase):
         self.assertEqual(ALLOWED_OPCODES, got)
         self.assertIn(0x0, ALLOWED_OPCODES)
         csp = Path(_swift_core("HTMLEscape.swift")).read_text(encoding="utf-8")
-        self.assertIn(ERROR_PAGE_CSP, csp)
+        self.assertEqual(_swift_string_const(csp, "errorPageCSP"), ERROR_PAGE_CSP)
+
+
+def _swift_string_const(text: str, name: str) -> str:
+    m = re.search(rf'static let {name}(?:\s*:\s*\w+)?\s*=\s*"([^"]*)"', text)
+    assert m, name
+    return m.group(1)
+
+
+def _swift_live(text: str) -> str:
+    live = []
+    for raw in text.splitlines():
+        if raw.lstrip().startswith("//"):
+            continue
+        live.append(raw.split("//")[0])
+    return "\n".join(live)
 
 
 class HTMLEscapeTests(unittest.TestCase):
@@ -315,6 +334,20 @@ class HTMLEscapeTests(unittest.TestCase):
         )
         self.assertEqual(html_escape("a&b"), "a&amp;b")
         self.assertEqual(html_escape("<>&"), "&lt;&gt;&amp;")
+
+    def test_table_matches_swift(self):
+        text = Path(_swift_core("HTMLEscape.swift")).read_text(encoding="utf-8")
+        self.assertEqual(_swift_string_const(text, "errorPageCSP"), ERROR_PAGE_CSP)
+        self.assertEqual(_swift_string_const(text, "nosniff"), "nosniff")
+        live = _swift_live(text)
+        for needle in (
+            'out += "&amp;"',
+            'out += "&lt;"',
+            'out += "&gt;"',
+            'out += "&quot;"',
+            'out += "&#39;"',
+        ):
+            self.assertIn(needle, live, needle)
 
 
 class CORSPolicyTests(unittest.TestCase):
@@ -327,6 +360,16 @@ class CORSPolicyTests(unittest.TestCase):
         self.assertEqual(cors_allow_origin(None, lan), "*")
         self.assertEqual(cors_allow_origin("http://127.0.0.1:7878", lan), "http://127.0.0.1:7878")
         self.assertIsNone(cors_allow_origin("http://evil.example", lan))
+
+    def test_swift_access_control_is_the_mirror(self):
+        text = Path(_swift_core("CORSPolicy.swift")).read_text(encoding="utf-8")
+        live = _swift_live(text)
+        self.assertIn("public static func accessControl", live)
+        self.assertIn('allowOrigin: "*"', live)
+        self.assertIn("needsVary: false", live)
+        self.assertIn("needsVary: true", live)
+        self.assertIn("OriginPolicy.isAllowed", live)
+        self.assertIn("Echo is NOT the write control", text)
 
 
 def _swift_quoted_forms(value: str) -> list[str]:

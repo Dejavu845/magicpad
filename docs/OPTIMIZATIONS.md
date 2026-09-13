@@ -50,7 +50,7 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 | C4-H2 | P0 | YES | 503 must use `sourceLabel()`, not `indexHTMLCandidates()` paths (home-path rule) |
 | C4-H3 | P1 | YES | `test-protocol.py` reads `ProtocolLimits.swift` / `HTMLEscape.swift`; `lan-vectors.json` + `filename-vectors.json` |
 | C4-M1/M3 | P1 | WRITE | `LANAddress` / Python require four octets and `0...255`; `LANDetector.isPrivate` delegates |
-| C4-M2/N2 | P1 | WRITE | Unicode filenames; `\` is a separator; truncate keeps suffix; `FileDropPasteboard` calls `Filenames.sanitize` |
+| C4-M2/N2 | P1 | WRITE | Unicode filenames; `\\` is a separator; truncate keeps suffix; `FileDropPasteboard` calls `Filenames.sanitize` |
 | C4-M4/M6 | P1 | WRITE | `ProtocolLimits` type/voice caps read `KeyProtocol`; header says 1 MiB / 16 KiB are new |
 | C4-M5/M7/M8 | P1 | YES | PROTOCOL opcode/version caveats; CORS `needsVary`; CSP `style-src 'unsafe-inline'` |
 
@@ -78,6 +78,17 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 | C7-M4 | P1 | YES | Fixture gate anchors on quoted literals; expected value must sit outside the input literal. |
 | C7-M5 | P1 | YES | `smoke-all.sh` POST /drop Origin evil → 403 `origin_rejected`; loopback → 200. Grep-locked. |
 | C7-M6 | P1 | WRITE | Both languages require 1–3 ASCII digits (reject `+` / `_` / Arabic-Indic / 4-digit octets). |
+
+## Cycle 9 — Opus C7 nits (local server; remote stub unrestored)
+
+| ID | Pri | Linux | What landed |
+|---|---|---|---|
+| C7-N1 | P1 | WRITE | 403/426 handshake return `.closing`; caller does not `closeInternal()` until send completes. |
+| C7-N2 | P1 | WRITE | One `range(of: CRLFCRLF)` scan; dead `guard` removed. |
+| C7-N3 | P1 | WRITE | `sentHeaderTooLarge` so a second receive does not send a second 431. |
+| C7-N4 | P1 | WRITE | 503 candidate labels are `Set` + `sorted` (no `bundle · bundle`). |
+| C7-N5/N6 | P1 | YES | HTMLEscape / CORS tests open the Swift files; CSP is the `static let` value, not a file substring. |
+| C7-N9 | P1 | WRITE | Comment: pre-handshake `buffer` is the NWConnection receive queue; `parseFrame` takes `lock`. |
 
 Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upload `WebSocketServer.swift`, `index.html`, or `scripts/smoke-all.sh`.
 
