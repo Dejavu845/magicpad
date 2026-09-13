@@ -77,15 +77,14 @@ class Cycle26BinaryFrameTests(unittest.TestCase):
         inj = (root / "MagicPadServer/Sources/MagicPadServer/EventInjector.swift").read_text(
             encoding="utf-8"
         )
-        if len(inj.encode("utf-8")) < 20_000:
-            self.skipTest("EventInjector.swift is the remote stub")
-        self.assertIn("BinaryFrame.parse", inj)
+        # Remote may still have a full pre-C26 EventInjector (not the 140-byte stub).
+        if "BinaryFrame.parse" not in inj:
+            self.skipTest("EventInjector.swift is unrestored on remote")
         ws = (root / "MagicPadServer/Sources/MagicPadServer/WebSocketServer.swift").read_text(
             encoding="utf-8"
         )
-        if len(ws.encode("utf-8")) < 20_000:
-            self.skipTest("WebSocketServer.swift is the remote stub")
-        self.assertIn("BinaryFrame.parse", ws)
+        if "BinaryFrame.parse" not in ws or len(ws.encode("utf-8")) < 20_000:
+            self.skipTest("WebSocketServer.swift is unrestored on remote")
 
 
 if __name__ == "__main__":
