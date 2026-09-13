@@ -121,6 +121,23 @@ def hello_payload(ua: str, ts: float) -> dict:
     return {"type": "hello", "ua": ua, "ts": ts}
 
 
+def header_value(blob: str, name: str) -> str | None:
+    """Mirror of MagicPadCore.HTTPHeaderValue.first.
+
+    Present-but-empty (`Origin:\\r\\n`) → `\"\"`, not the header name.
+    Missing → None.
+    """
+    target = name.lower() + ":"
+    normalized = blob.replace("\r\n", "\n").replace("\r", "\n")
+    for line in normalized.split("\n"):
+        if line.lower().startswith(target):
+            parts = line.split(":", 1)
+            if len(parts) < 2:
+                return ""
+            return parts[1].strip()
+    return None
+
+
 def origin_allowed(origin: str | None, lan_ips: list[str] | None = None) -> bool:
     """Mirror of MagicPadCore.OriginPolicy.isAllowed (MP-01)."""
     if origin is None or origin == "":
