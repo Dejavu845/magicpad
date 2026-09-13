@@ -77,7 +77,7 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 | C7-M3 | P1 | YES | Core file headers no longer say the Cycle 7 wires are unwired. |
 | C7-M4 | P1 | YES | Fixture gate anchors on quoted literals; expected value must sit outside the input literal. |
 | C7-M5 | P1 | YES | `smoke-all.sh` POST /drop Origin evil → 403 `origin_rejected`; loopback → 200. Grep-locked. |
-| C7-M6 | P1 | WRITE | Both languages require 1–3 ASCII min digits (reject `+` / `_` / Arabic-Indic / 4-digit octets). |
+| C7-M6 | P1 | WRITE | Both languages require 1–3 ASCII digits (reject `+` / `_` / Arabic-Indic / 4-digit octets). |
 
 ## Cycle 9 — Opus C7 nits (local server; remote stub unrestored)
 
