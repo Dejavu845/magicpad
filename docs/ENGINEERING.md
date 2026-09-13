@@ -14,7 +14,7 @@ This Linux Cloud Agent **cannot** compile the menu-bar app (no Xcode / macOS SDK
 | STT | WhisperKit on-device (base → tiny) | Weights gitignored (`vendor/whisper/`). No cloud STT / no LLM |
 | Phone UI | Single-file `MagicPadClient/index.html` | Vanilla JS, TouchEvents (not PointerEvents for the pad), no bundler, no CDN |
 | Pack | `scripts/build_app.sh` | Ad-hoc sign, `LSUIElement`, bundles HTML (+ Whisper if present) |
-| Linux gates | `lint-repo.sh`, `check-html.py`, `test-protocol.py` | GitHub Actions `linux-checks` on every push |
+| Linux gates | `lint-repo.sh` (incl. file-integrity floors), `check-html.py`, `test-protocol.py` | GitHub Actions `linux-checks` on every push |
 
 Do not add: NIO/Vapor, React, a phone App Store app, ngrok/cloudflared, OpenAI/Anthropic/Grok SDKs.
 
@@ -35,9 +35,9 @@ Every `index.html` edit bumps `MAGICPAD_HTML_REV` (`YYYYMMDD-HHMM-hN`, N strictl
 ### Security (LAN injector)
 
 - Listeners only when a private IPv4 is present. No UPnP, no tunnel.
-- WebSocket `Origin` allowlist (`OriginPolicy`): missing/empty Origin allowed (curl/python smokes); `http(s)|ws(s)` + host in `{127.0.0.1, localhost, ::1} ∪ LAN IPs`. Else `403`. Debug hatch: `MAGICPAD_ALLOW_ANY_ORIGIN=1` (off by default).
-- Inbound inject strings go through pure `MagicPadCore` parsers (`parseKey` / `parseType` / `parseVoice`). Allowlist + clamps. No `as? String` then inject.
-- `/health` must not leak home paths, hostname, SSID, or payload text. `binaryPath` is `MagicPad.app` only.
+- WebSocket `Origin` allowlist (`OriginPolicy`): missing Origin allowed (curl/python smokes); empty `Origin:` header is **rejected today** by the server parser (literal `"Origin"`), while the policy function treats `""` as allow — see `docs/SECURITY.md`. `http(s)|ws(s)` + host in `{127.0.0.1, localhost, ::1} ∪ LAN IPs`. Else `403`. Debug hatch: `MAGICPAD_ALLOW_ANY_ORIGIN=1` (off by default). **HTTP `POST /drop` and `POST /stt` have no Origin check yet** (`docs/CYCLE3-HTTP-ORIGIN.md`).
+- Inbound inject strings go through pure `MagicPadCore` parsers (`parseKey` / `parseType` / `parseVoice`). Allowlist + clamps. No `as? String` then inject. Non-string voice `text` → `bad_voice` (not `empty`).
+- `/health` JSON must not leak home paths, hostname, SSID, or payload text. `binaryPath` is `MagicPad.app` only. HTML error pages are **not** covered by that promise.
 - Never commit `*.p12` `*.pem` `*.key` `*.cer`, Whisper `*.mlmodelc` / `weight.bin`, or `.env*`.
 
 ### Swift
@@ -95,6 +95,8 @@ python3 scripts/generate_qr.py --print-only --http
 ```
 
 Environment bootstrap: `.cursor/environment.json` installs `shellcheck`, `websocket-client`, `qrcode[pil]`. Swift is optional — install must **not** fail if the toolchain or macOS frameworks are missing.
+
+`lint-repo.sh` also floors `WebSocketServer.swift` / `index.html` / `smoke-all.sh` / `KeyProtocol.swift` and rejects any `Sources/**/*.swift` containing `Placeholder replaced by`. A 140-byte stub (today's remote tree) is proven to fail via `python3 scripts/repo_integrity.py --prove-stub`.
 
 ### Share
 
