@@ -44,6 +44,13 @@ else
   fail_step "generate_qr.py --print-only --http"
 fi
 
+# --- 4b. Cycle 21 QR token lock (small file; do not grow test-protocol.py) ---
+if python3 -m unittest scripts/test_cycle21_qr.py -q; then
+  pass "unittest scripts/test_cycle21_qr.py"
+else
+  fail_step "unittest scripts/test_cycle21_qr.py"
+fi
+
 # --- 5. tracked forbidden files ---
 if git ls-files | grep -E '\.(mlmodelc|mlpackage|safetensors|p12|pem|key|cer)$|(^|/)weight\.bin$|^vendor/whisper/' >/dev/null 2>&1; then
   echo "tracked forbidden paths:" >&2
@@ -103,7 +110,7 @@ if rfc_hits:
         print("  " + h, file=sys.stderr)
     fail = True
 if user_hits:
-    print("/Users/<name> literals outside docs/:", file=sys.stderr)
+    print("/Users/<name> literals outside docs/", file=sys.stderr)
     for h in user_hits:
         print("  " + h, file=sys.stderr)
     fail = True
