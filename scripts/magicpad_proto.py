@@ -2,6 +2,7 @@
 """MagicPad binary + WS helpers (stdlib). Shared by smoke-ws.py and test-protocol.py."""
 from __future__ import annotations
 
+import json
 import os
 import struct
 from urllib.parse import urlparse
@@ -118,7 +119,7 @@ def decode_latency_echo(data: bytes) -> dict:
 
 
 def hello_payload(ua: str, ts: float) -> dict:
-    return {"type": "hello", "ua": ua, "ts": ts}
+    return {"type": "hello", "ua": ua, "ts": ts, "proto": PROTO}
 
 
 def header_value(blob: str, name: str) -> str | None:
@@ -206,6 +207,14 @@ ALLOWED_OPCODES = frozenset({0x0, 0x1, 0x2, 0x8, 0x9, 0xA})
 CLOSE_MESSAGE_TOO_BIG = 1009
 CLOSE_UNSUPPORTED_DATA = 1003
 ERROR_PAGE_CSP = "default-src 'none'; style-src 'unsafe-inline'"
+
+
+def json_text_encode(obj: dict) -> str | None:
+    """Mirror of JSONText.encode: sorted keys, compact, no escaped slashes."""
+    try:
+        return json.dumps(obj, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    except (TypeError, ValueError):
+        return None
 
 
 def html_escape(raw: str) -> str:
