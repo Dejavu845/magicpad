@@ -195,3 +195,29 @@ class SmokeWsArgTests(unittest.TestCase):
         self.assertEqual(args.origin, "http://evil.example")
         args2 = mod.parse_args([])
         self.assertFalse(args2.expect_reject)
+
+
+class RepoIntegrityTests(unittest.TestCase):
+    def test_live_tree_passes(self):
+        from repo_integrity import check
+
+        root = os.path.dirname(HERE)
+        self.assertEqual(check(root), [])
+
+    def test_remote_stub_is_140_bytes(self):
+        from repo_integrity import PLACEHOLDER_MARK, REMOTE_WS_STUB
+
+        self.assertEqual(len(REMOTE_WS_STUB), 140)
+        self.assertIn(PLACEHOLDER_MARK.encode("utf-8"), REMOTE_WS_STUB)
+
+    def test_today_stub_would_fail_gate(self):
+        from repo_integrity import PLACEHOLDER_MARK, stub_issues
+
+        root = os.path.dirname(HERE)
+        issues = stub_issues(root)
+        self.assertTrue(
+            any("WebSocketServer.swift" in i and "bytes" in i for i in issues),
+            msg=issues,
+        )
+        self.assertTrue(any(PLACEHOLDER_MARK in i for i in issues), msg=issues)
+        self.assertTrue(any("500" in i or "lines" in i for i in issues), msg=issues)
