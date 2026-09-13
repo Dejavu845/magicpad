@@ -327,3 +327,86 @@ class Cycle16MenuAndProtocolTests(unittest.TestCase):
         self.assertIn("StaticFileLocator.htmlRev()", live)
         self.assertIn("WebSocketServer.liveClientCount", live)
         self.assertNotIn("pairing", live.lower())
+
+
+class Cycle15CertAndDraftTests(unittest.TestCase):
+    """MP-22 GET /cert whitelist; MP-24 draft persist gates."""
+
+    def test_python_cert_route_is_cer_only(self):
+        self.assertEqual(CERT_PATH, "/cert")
+        self.assertEqual(CERT_FILENAME, "magicpad-lan.cer")
+        self.assertEqual(CERT_CONTENT_TYPE, "application/x-x509-ca-cert")
+        self.assertEqual(CERT_MISSING_BODY, "cert_not_ready")
+        self.assertEqual(CERT_FORBIDDEN_BODY, "cert_forbidden")
+        self.assertTrue(cert_allows_get("/cert"))
+        self.assertTrue(cert_allows_get("/cert/"))
+        self.assertTrue(cert_allows_get("/cert?download=1"))
+        self.assertFalse(cert_allows_get("/cert/magicpad-lan.cer"))
+        self.assertFalse(cert_allows_get("/magicpad-lan.cer"))
+        self.assertFalse(cert_allows_get("/health"))
+        self.assertTrue(cert_refuses_secret("/magicpad-lan.p12"))
+        self.assertTrue(cert_refuses_secret("/magicpad-lan-key.pem"))
+        self.assertTrue(cert_refuses_secret("/foo.key"))
+        self.assertFalse(cert_refuses_secret("/cert"))
+        self.assertFalse(cert_refuses_secret("/magicpad-lan.cer"))
+
+    def test_swift_cert_route_and_local_server_wire(self):
+        core = Path(_swift_core("CertRoute.swift")).read_text(encoding="utf-8")
+        live = _swift_live(core)
+        self.assertIn('path = "/cert"', live)
+        self.assertIn('filename = "magicpad-lan.cer"', live)
+        self.assertIn('contentType = "application/x-x509-ca-cert"', live)
+        self.assertIn('".pem"', live)
+        self.assertIn('".p12"', live)
+        proto = Path(os.path.dirname(HERE), "docs", "PROTOCOL.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("`GET /cert`", proto)
+        self.assertIn("cert_forbidden", proto)
+        sec = Path(os.path.dirname(HERE), "docs", "SECURITY.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("GET /cert", sec)
+        self.assertIn("magicpad-lan.cer", sec)
+        ws = Path(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Sources",
+            "MagicPadServer",
+            "WebSocketServer.swift",
+        ).read_text(encoding="utf-8")
+        if len(ws.encode("utf-8")) < 20_000:
+            self.skipTest("WebSocketServer.swift is the remote stub")
+        wslive = _swift_live(ws)
+        self.assertIn("CertRoute.allowsGET", wslive)
+        self.assertIn("CertRoute.refusesSecretExport", wslive)
+        self.assertIn("LANCert.cerURL", wslive)
+
+    def test_check_html_fails_missing_draft_and_cert_help(self):
+        path = os.path.join(os.path.dirname(HERE), "scripts", "check-html.py")
+        raw = Path(path).read_text(encoding="utf-8")
+        self.assertIn("magicpad_draft", raw)
+        self.assertIn("persistDraftSoon", raw)
+        self.assertIn('id="certHelp"', raw)
+
+
+class Cycle14VersionAndHTMLTests(unittest.TestCase):
+    """MP-19 Version.swift; MP-15/16 gates live in check-html.py."""
+
+    def test_version_swift_is_the_only_semver_source(self):
+        root = os.path.dirname(HERE)
+        ver = Path(root, "MagicPadServer", "Sources", "MagicPadServer", "Version.swift").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('static let string = "0.1.0"', ver)
+        sh = Path(root, "scripts", "build_app.sh").read_text(encoding="utf-8")
+        self.assertIn("swift build --show-bin-path", sh)
+        self.assertIn("Version.swift", sh)
+        self.assertNotIn('VERSION="0.1.0"', sh)
+
+    def test_check_html_fails_missing_a11y(self):
+        path = os.path.join(os.path.dirname(HERE), "scripts", "check-html.py")
+        raw = Path(path).read_text(encoding="utf-8")
+        self.assertIn('fails.append(":focus-visible missing")', raw)
+        self.assertIn('role="tablist"', raw)
+        self.assertIn("syncLayoutSoon", raw)
