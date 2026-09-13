@@ -39,6 +39,12 @@ Unknown JSON `type` is ignored. Non-object / non-string `type` is ignored.
 | `POST /stt` | ≤ 10 MB audio. Cycle 7 wired `HTTPPostOrigin.allows` locally (403 `origin_rejected`). Remote stub unrestored. |
 | `POST /drop` | ≤ 50 MB file → pasteboard + optional Cmd+V (`autoPaste` default true). Same local Origin check as `/stt`. |
 
+### `GET /health` keys (smoke-all contract + `proto`)
+
+`ok` `service` `port` `httpPort` `httpsPort` `https` `httpsUrl` `httpUrl` `httpsError` `ip` `ips` `ifaces` `routeIface` `mdns` `html` `htmlPath` `htmlSource` `htmlRev` `binaryPath` `injectQueue` `ax` `stt` `sttFile` `whisper` `whisperReady` `whisperCached` `whisperModel` `lastKey` `lastKeyReason` `injectCount` `lastKeyOk` `lastKeyAt` `lastKeyCount` `lastDropOk` `lastDropReason` `lastDropKind` `lastDropAt` `dropCount` `lastGesture` `lastGestureReason` `lastGestureAt` `lastGesturePhase` `gestureCount` `clients` `ts` `proto`.
+
+Never hostname, home path, SSID, user, or payload text. `binaryPath` is `MagicPad.app` only.
+
 ## Limits (`MagicPadCore.ProtocolLimits` / `scripts/magicpad_proto.py`)
 
 | Constant | Value | Where |
