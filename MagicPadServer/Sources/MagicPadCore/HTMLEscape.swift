@@ -1,6 +1,6 @@
 // HTMLEscape.swift
 // Escape untrusted text before interpolating into fallbackHTML (Opus H1).
-// Wire in WebSocketServer.fallbackHTML after the 62 KB file is restored.
+// Cycle 7 wired this in local WebSocketServer.fallbackHTML. Remote stub unrestored.
 // This is for a text-content sink (`<p>`). It does not escape backtick or `=`;
 // do not reuse it for an unquoted attribute value.
 

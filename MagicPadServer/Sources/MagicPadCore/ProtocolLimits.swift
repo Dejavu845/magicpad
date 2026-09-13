@@ -1,7 +1,7 @@
 // ProtocolLimits.swift
-// Shared WS / JSON / HTTP size caps. Wire in WebSocketServer after the
-// 62 KB file is restored (docs/CYCLE4-WIRING.md).
-// 1 MiB / 16 KiB are new caps (the live parseFrame has neither).
+// Shared WS / JSON / HTTP size caps. Cycle 7 wired maxFrameBytes /
+// maxHeaderBytes / allowedOpcodes into local WebSocketServer.parseFrame
+// (docs/CYCLE4-WIRING.md). Remote stub unrestored until a human git push.
 // maxTypeChars / maxVoiceChars / proto / version 13 mirror existing code —
 // do not invent a second pair of type/voice numbers; read KeyProtocol.
 

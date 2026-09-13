@@ -1,6 +1,7 @@
 // CORSPolicy.swift
 // Echo an allowlisted Origin; keep * only when Origin is missing (curl).
-// Echo is NOT the write control — beginHTTPPost still needs HTTPPostOrigin.
+// Echo is NOT the write control. Cycle 7 wired HTTPPostOrigin.allows in
+// local beginHTTPPost; this type only decides Access-Control-Allow-Origin.
 
 import Foundation
 

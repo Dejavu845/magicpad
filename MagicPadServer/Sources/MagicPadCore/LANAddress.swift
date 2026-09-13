@@ -13,7 +13,12 @@ public enum LANAddress {
         var parts: [Int] = []
         parts.reserveCapacity(4)
         for token in tokens {
-            guard let n = Int(token), (0...255).contains(n) else { return false }
+            // One to three ASCII digits. Reject "+" / "-" / "_" that Int(String)
+            // would accept (Opus C7 M6). Same rule as scripts/magicpad_proto.py.
+            let ascii = token.utf8
+            guard (1...3).contains(ascii.count),
+                  ascii.allSatisfy({ $0 >= 48 && $0 <= 57 }),
+                  let n = Int(token), (0...255).contains(n) else { return false }
             parts.append(n)
         }
         if parts[0] == 127 { return false }

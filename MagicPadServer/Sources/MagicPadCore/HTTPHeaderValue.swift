@@ -1,6 +1,7 @@
 // HTTPHeaderValue.swift
-// Cycle 3: replace WebSocketServer.headerValue and the handshake Origin / key loops
-// with this. Fixes empty `Origin:` parsing as the literal header name (Opus M1).
+// Cycle 7 wired handshake Origin / key / version. Cycle 8 replaces the last
+// WebSocketServer.headerValue call sites in beginHTTPPost (filename / length /
+// type / lang / autopaste). Empty `Name:` is "" , not the header name.
 
 import Foundation
 
