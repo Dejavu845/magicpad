@@ -11,6 +11,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from generate_qr import is_private  # noqa: E402
+from lan_fixtures import LAN_FIXTURES  # noqa: E402
 from magicpad_proto import is_private_ipv4  # noqa: E402
 
 
@@ -25,13 +26,10 @@ class Cycle28LANTests(unittest.TestCase):
         self.assertFalse(is_private("+10.0.0.1"))  # example-ip
         self.assertFalse(is_private("10.0000.0.1"))  # example-ip
         self.assertFalse(is_private("172.15.0.1"))
-        for sample in (
-            "10.8.0.2",  # example-ip
-            "+10.0.0.1",  # example-ip
-            "10.a.0.0.1",  # example-ip
-            "192.168.-1.0",  # example-ip
-        ):
-            self.assertEqual(is_private(sample), is_private_ipv4(sample))
+        for ip, expected, note in LAN_FIXTURES:
+            with self.subTest(ip=ip, note=note):
+                self.assertEqual(is_private(ip), expected)
+                self.assertEqual(is_private(ip), is_private_ipv4(ip))
 
     def test_generate_qr_delegates(self):
         text = Path(HERE, "generate_qr.py").read_text(encoding="utf-8")
