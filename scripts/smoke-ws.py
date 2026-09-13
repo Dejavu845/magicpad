@@ -3,6 +3,8 @@
 
 Usage:
   python3 scripts/smoke-ws.py
+  python3 scripts/smoke-ws.py --origin http://127.0.0.1:7878
+  python3 scripts/smoke-ws.py --origin http://evil.example --expect-reject
   BASE_HOST=127.0.0.1 BASE_PORT=7878 python3 scripts/smoke-ws.py
 """
 from __future__ import annotations
@@ -23,6 +25,7 @@ from magicpad_proto import frame13, frame18, mask_frame  # noqa: E402
 HOST = os.environ.get("BASE_HOST", "127.0.0.1")
 PORT = int(os.environ.get("BASE_PORT", "7878"))
 ORIGIN: str | None = None
+EXPECT_REJECT = False
 
 
 class HandshakeRejected(RuntimeError):
@@ -66,6 +69,16 @@ def main() -> int:
     print("health:", json.dumps(h, ensure_ascii=False))
     assert h.get("ok") is True, "health not ok"
     assert h.get("html") is True, "html missing"
+
+    if EXPECT_REJECT:
+        try:
+            s = ws_connect(ORIGIN)
+        except HandshakeRejected as e:
+            print("PASS handshake rejected (expected):", e)
+            return 0
+        s.close()
+        print("FAIL: handshake succeeded but --expect-reject was set", file=sys.stderr)
+        return 1
 
     s = ws_connect(ORIGIN)
     print("ws: open PASS")
@@ -197,6 +210,12 @@ def main() -> int:
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="MagicPad overnight WS smoke — stdlib only")
     p.add_argument("--origin", default=None, help="Origin request header (optional)")
+    p.add_argument(
+        "--expect-reject",
+        action="store_true",
+        help="PASS if the WS handshake is rejected (non-101 / Origin allowlist). "
+        "FAIL if the handshake succeeds.",
+    )
     p.add_argument("--host", default=None, help="Override BASE_HOST")
     p.add_argument("--port", type=int, default=None, help="Override BASE_PORT")
     return p.parse_args(argv)
@@ -209,6 +228,7 @@ if __name__ == "__main__":
     if args.port:
         PORT = args.port
     ORIGIN = args.origin
+    EXPECT_REJECT = bool(args.expect_reject)
     try:
         sys.exit(main())
     except HandshakeRejected as e:
