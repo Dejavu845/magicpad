@@ -87,7 +87,7 @@ Never hostname, home path, SSID, user, or payload text. `binaryPath` is `MagicPa
 
 ### `stt` JSON (MP-12)
 
-Inbound: `type=stt`, `action` ∈ `start`/`begin`/`on` · `stop`/`end`/`off` · `status`. Optional `lang` (zh-CN / en-US / ja-JP; else zh-CN). Optional `onDevice` JSON bool (else true). Unknown action → `stt_final{ok:false, reason:bad_action}` (no inject).
+Inbound: `type=stt`, `action` ∈ `start`/`begin`/`on` · `stop`/`end`/`off` · `status`. Optional `lang` (zh-CN / en-US / ja-JP; else zh-CN). Optional `onDevice` JSON bool (else true). Unknown action → `stt_final{ok:false, reason:bad_action}` (no inject). Cycle 23: aliases are `STTAction.parse` / `parse_stt_action` (Core + Python). Local hello wire uses the Core parser; remote stub unrestored.
 
 `stt_status` (status / live): `state` listening|idle|already, `lang`, `engine` whisper|apple, optional `auth` `onDeviceSupported` `whisperReady` `whisperModel`.
 
@@ -110,7 +110,7 @@ Inbound: `type=stt`, `action` ∈ `start`/`begin`/`on` · `stop`/`end`/`off` · 
 ## Limits (`MagicPadCore.ProtocolLimits` / `scripts/magicpad_proto.py`)
 
 | Constant | Value | Where |
-|---|---|---|
+|---|---|
 | `maxFrameBytes` | 1 048 576 (1 MiB) | WS `parseFrame` — Cycle 7 wired locally (`pendingCloseCode` then close after unlock). Remote stub unrestored. |
 | `maxHeaderBytes` | 16 384 | pre-handshake header — Cycle 7 wired (431 if over cap without `\\r\\n\\r\\n`) |
 | `maxTypeChars` | 2 000 | `type` / `text` JSON |
