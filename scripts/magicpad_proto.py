@@ -250,6 +250,11 @@ def is_private_ipv4(ip: str) -> bool:
     parts = ip.split(".")
     if len(parts) != 4:
         return False
+    # Swift Int(String) is ASCII digits with optional sign. Reject
+    # underscores / Unicode digits / surrounding whitespace that Python int()
+    # would accept (Opus C6 M3).
+    if any((not p.isascii()) or (not p.isdigit()) for p in parts):
+        return False
     try:
         nums = [int(p) for p in parts]
     except ValueError:

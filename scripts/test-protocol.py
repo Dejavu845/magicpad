@@ -201,6 +201,49 @@ class RepoIntegrityTests(unittest.TestCase):
         self.assertTrue(any("500" in i or "lines" in i for i in issues), msg=issues)
 
 
+class Cycle7WiringLockTests(unittest.TestCase):
+    """Only asserts on the live 62 KB file. The 140-byte remote stub skips."""
+
+    def test_local_server_has_cycle7_inserts(self):
+        path = os.path.join(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Sources",
+            "MagicPadServer",
+            "WebSocketServer.swift",
+        )
+        raw = Path(path).read_text(encoding="utf-8")
+        if len(raw.encode("utf-8")) < 20_000:
+            self.skipTest("WebSocketServer.swift is the remote stub")
+        needles = (
+            "HTTPPostOrigin.allows",
+            "pendingCloseCode",
+            "sendCloseFrame(code:",
+            "HTMLEscape.escape",
+            "sourceLabel",
+            "ProtocolLimits.maxFrameBytes",
+            "431 Request Header Fields Too Large",
+            "426 Upgrade Required",
+            "CORSPolicy.accessControl",
+            "HTTPHeaderValue.first",
+            "import MagicPadCore",
+        )
+        missing = [n for n in needles if n not in raw]
+        self.assertFalse(missing, missing)
+        start = raw.index("private func parseFrame()")
+        end = raw.index("\n    func sendLatencyEcho")
+        parse = raw[start:end]
+        self.assertNotIn("closeInternal()", parse)
+        self.assertNotIn("sendCloseFrame(", parse)
+        root = os.path.dirname(HERE)
+        for rel in (
+            "MagicPadServer/Sources/MagicPadServer/LANDetector.swift",
+            "MagicPadServer/Sources/MagicPadServer/FileDropPasteboard.swift",
+        ):
+            text = Path(root, rel).read_text(encoding="utf-8")
+            self.assertIn("import MagicPadCore", text, rel)
+
+
 def _swift_core(name: str) -> str:
     return os.path.join(
         os.path.dirname(HERE),
@@ -279,8 +322,16 @@ class LANAddressTests(unittest.TestCase):
         for row in data["vectors"]:
             got = is_private_ipv4(row["ip"])
             self.assertEqual(got, row["private"], row["id"])
-            if row["ip"] not in swift:
-                missing.append(f"{row['id']}: {row['ip']!r}")
+            want_fn = "XCTAssertTrue" if row["private"] else "XCTAssertFalse"
+            hit = False
+            for line in swift.splitlines():
+                if line.lstrip().startswith("//"):
+                    continue
+                if row["ip"] in line and want_fn in line:
+                    hit = True
+                    break
+            if not hit:
+                missing.append(f"{row['id']}: {row['ip']!r} needs {want_fn} on the same live line")
         self.assertFalse(missing, missing)
 
 
@@ -299,8 +350,21 @@ class FilenamesTests(unittest.TestCase):
         missing = []
         for row in data["vectors"]:
             self.assertEqual(sanitize_filename(row["input"]), row["out"], row["id"])
-            if row["input"] not in swift:
-                missing.append(f"{row['id']}: {row['input']!r}")
+            hit = False
+            for line in swift.splitlines():
+                if line.lstrip().startswith("//"):
+                    continue
+                out_ok = row["out"] in line or (
+                    row["out"] == "magicpad-file.bin" and "Filenames.fallback" in line
+                )
+                if row["input"] in line and out_ok:
+                    hit = True
+                    break
+            if not hit:
+                missing.append(
+                    f"{row['id']}: {row['input']!r} → {row['out']!r} "
+                    "must share a live Swift assert line"
+                )
         self.assertFalse(missing, missing)
 
     def test_keeps_suffix_when_truncating(self):
