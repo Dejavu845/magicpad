@@ -15,8 +15,11 @@ public enum OriginPolicy {
 
     /// Shared parse for `isAllowed` and `host(fromOrigin:)`.
     /// Rejects non-http(s)/ws(s), userinfo, query, fragment, non-root path,
-    /// and percent-encoded hosts. Trailing `/` on the origin string is stripped
-    /// first so `http://127.0.0.1:7878/` still parses as root.
+    /// and percent-encoded hosts (`http://%31%32%37.0.0.1` used to decode to
+    /// `127.0.0.1`). Present-but-empty query (`?`), fragment (`#`), and
+    /// userinfo (`@`) are also rejected — URLComponents returns non-nil empty
+    /// for those. Trailing `/` on the origin string is stripped first so
+    /// `http://127.0.0.1:7878/` still parses as root.
     public static func parse(origin: String) -> Parsed? {
         var s = origin.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !s.isEmpty, s.lowercased() != "null" else { return nil }

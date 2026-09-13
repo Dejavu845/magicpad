@@ -19,7 +19,7 @@ Debug hatch (documented, default off): `MAGICPAD_ALLOW_ANY_ORIGIN=1`. Do not lea
 
 Phone page served from the live LAN IP still connects: that IP is in `LANDetector.allPrivateIPs` plus `LANDetector.ip`. HTTPS `:7879` uses the same host list. Hostname / mDNS (`*.local`) is **not** on the allowlist — only IP-literal (and loopback) access is supported today.
 
-**MP-01 does not close HTTP.** `POST /drop` and `POST /stt` in `beginHTTPPost` do not read `Origin`. `autoPaste` defaults to true, so a CORS-simple `fetch(..., {mode:'no-cors'})` from any origin can write the pasteboard and synthesize Cmd+V. Changing `Access-Control-Allow-Origin` (leftover MP-04 as originally written) only affects who may *read* replies; it does not stop the write. Cycle 3 wires `HTTPPostOrigin.allows` before `dispatchPostBody`. Until then, do not describe CSWSH as closed on the HTTP door.
+**MP-01 does not close HTTP.** `POST /drop` and `POST /stt` in `beginHTTPPost` do not read `Origin`. `autoPaste` defaults to true, so a CORS-simple `fetch(..., {mode:'no-cors'})` from any origin can write the pasteboard and synthesize Cmd+V. Changing `Access-Control-Allow-Origin` (leftover MP-04 as originally written) only affects who may *read* replies; it does not stop the write. Cycle 3 adds `HTTPPostOrigin.allows` in Core but does not yet call it from `beginHTTPPost`. Until that insert (see `docs/CYCLE3-HTTP-ORIGIN.md`), do not describe CSWSH as closed on the HTTP door.
 
 ## What `/health` may expose
 
@@ -36,7 +36,11 @@ Exact-set host match, no IPv4/IPv6 normalization. These are **rejected on purpos
 - Trailing-dot `localhost.`
 - mDNS / hostname (`http://mymac.local`) — unsupported until MP-22 decides otherwise
 
-`OriginPolicy.host(fromOrigin:)` skips the scheme allowlist and is **log-only**.
+`OriginPolicy.host(fromOrigin:)` uses the same `parse` as `isAllowed` (scheme required). `file://127.0.0.1` → nil. Path / query / fragment / userinfo Origins are rejected, including present-but-empty `?` / `#` / `@`. `percentEncodedHost` plus a `%` reject closes a decode-then-compare bypass: `http://%31%32%37.0.0.1` used to decode to `127.0.0.1` and match the allowlist.
+
+## Cycle 4 helpers (not yet on the live 62 KB server file)
+
+`HTMLEscape.escape` + `Content-Security-Policy: default-src 'none'` + `X-Content-Type-Options: nosniff` are the intended fix for the reflected `fallbackHTML` sink (Opus H1). `CORSPolicy` only changes who may *read* replies. Insert both per `docs/CYCLE4-WIRING.md` after a human restore of `WebSocketServer.swift`.
 
 ## Reporting
 

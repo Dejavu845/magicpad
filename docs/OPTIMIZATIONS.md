@@ -20,15 +20,34 @@ Linux: **YES** fully verifiable here · **WRITE** Swift written here, Mac owner 
 | MP-25 | P0 | YES | `lint-repo.sh` integrity floors + placeholder marker; `--prove-stub` rejects the 140-byte remote WebSocketServer |
 | MP-26 | P1 | YES | `smoke-ws.py --expect-reject` (403 assertion reusable outside `smoke-all.sh`) |
 | MP-27 | P0 | WRITE | `HTTPHeaderValue` + `HTTPPostOrigin` in Core + `docs/CYCLE3-HTTP-ORIGIN.md` (not yet called from `beginHTTPPost`) |
+| MP-28 | P0 | YES | `OriginPolicy.parse`: reject path/query/fragment/userinfo/`%` host; `host(fromOrigin:)` shares parse; `scripts/fixtures/origin-vectors.json` drives the Python table; `OriginPolicyTests.swift` is hand-copied and `test-protocol.py` asserts every fixture origin string appears in that Swift file |
 
 Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP gap; `/health`-scoped path promise), `docs/PROTOCOL.md` (JSON catalogue seed). Full MP-12 still leftover.
+
+## Cycle 4 — implemented (helpers only; WebSocketServer not rewritten)
+
+| ID | Pri | Linux | What landed |
+|---|---|---|---|
+| MP-02 | P0 | WRITE | `ProtocolLimits` + Python mirror. **Not wired** into `parseFrame` / handshake (`docs/CYCLE4-WIRING.md`). |
+| MP-04 echo | P0 | WRITE | `CORSPolicy.accessControlAllowOrigin` — echo allowlist / omit / `*`. **Not the write control.** |
+| H1 helper | P0 | WRITE | `HTMLEscape.escape` + CSP/nosniff constants for `fallbackHTML`. |
+| MP-17 seed | P1 | WRITE | `JSONText.encode` (sorted keys). |
+| MP-18 seed | P2 | WRITE | `LANAddress.isPrivate` + `Filenames.sanitize` + Python mirrors. |
+
+## Cycle 5 — Opus C3 follow-up (docs + mirror fidelity)
+
+| ID | Pri | Linux | What landed |
+|---|---|---|---|
+| MP-28 parity | P1 | YES | Fixture comment + `test_every_fixture_origin_appears_in_swift`; added `localhost-suffix` and four empty query/fragment/userinfo rows to the Swift table |
+| MP-28 mirror | P1 | YES | Python `origin_parse` rejects raw `?`/`#` and `username is not None` so empty query/fragment/userinfo match Swift |
+| MP-28 docs | P1 | YES | `SECURITY.md` present tense + decode-then-compare note; `HTTPPostOrigin.swift` states the helper is not yet called |
 
 ## Leftover P0
 
 | ID | Linux | Next step |
 |---|---|---|
-| MP-02 | WRITE | Cap WS frames at 1 MiB and headers at 16 KiB; require `Sec-WebSocket-Version: 13`; parse `Upgrade` rather than scanning the blob |
-| MP-04 | WRITE | **`OriginPolicy.isAllowed` in `beginHTTPPost` before pasteboard/STT** (`docs/CYCLE3-HTTP-ORIGIN.md`). Echo allowlisted `Origin` instead of CORS `*` is *not* sufficient — a CORS-simple `no-cors` POST writes regardless of who can read the reply. Keep `*` when Origin is missing (curl smoke). `/health` wildcard CORS is a recon oracle (`ip`/`ips`/`ifaces`). |
+| MP-02 wire | WRITE | After restoring `WebSocketServer.swift`, insert `ProtocolLimits` in `parseFrame` / header / version (`docs/CYCLE4-WIRING.md`) |
+| MP-04 write | WRITE | **`HTTPPostOrigin.allows` in `beginHTTPPost` before pasteboard/STT** (`docs/CYCLE3-HTTP-ORIGIN.md`). CORS echo is *not* sufficient. `/health` wildcard CORS is a recon oracle (`ip`/`ips`/`ifaces`). |
 
 ## Leftover P1
 

@@ -1,7 +1,7 @@
 // HTTPPostOrigin.swift
-// Cycle 3 (owner `git push` of WebSocketServer.swift): call from beginHTTPPost.
-// Exact insertion is documented in docs/CYCLE3-HTTP-ORIGIN.md — do not pretend
-// MP-01 already closed POST /drop. CORS * is not this check.
+// Core helper for the HTTP POST Origin check. beginHTTPPost does not call
+// this yet — POST /drop and POST /stt still have no Origin check. Insertion
+// is documented in docs/CYCLE3-HTTP-ORIGIN.md. CORS * is not this check.
 
 import Foundation
 
