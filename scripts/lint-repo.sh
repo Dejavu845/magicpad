@@ -110,7 +110,7 @@ if rfc_hits:
         print("  " + h, file=sys.stderr)
     fail = True
 if user_hits:
-    print("/Users/<name> literals outside docs/", file=sys.stderr)
+    print("/Users/<name> literals outside docs/:", file=sys.stderr)
     for h in user_hits:
         print("  " + h, file=sys.stderr)
     fail = True
