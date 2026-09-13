@@ -4,20 +4,26 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import struct
 import sys
 import unittest
+from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from magicpad_proto import (  # noqa: E402
     ALLOWED_OPCODES,
+    CLOSE_MESSAGE_TOO_BIG,
+    CLOSE_UNSUPPORTED_DATA,
+    ERROR_PAGE_CSP,
     MAX_FRAME_BYTES,
     MAX_HEADER_BYTES,
     MAX_TYPE_CHARS,
     MAX_VOICE_CHARS,
     PROTO,
+    cors_allow,
     cors_allow_origin,
     decode_frame13,
     decode_frame18,
@@ -195,14 +201,44 @@ class RepoIntegrityTests(unittest.TestCase):
         self.assertTrue(any("500" in i or "lines" in i for i in issues), msg=issues)
 
 
+def _swift_core(name: str) -> str:
+    return os.path.join(
+        os.path.dirname(HERE),
+        "MagicPadServer",
+        "Sources",
+        "MagicPadCore",
+        name,
+    )
+
+
+def _swift_int_const(text: str, name: str) -> int:
+    m = re.search(rf"static let {name}(?:\s*:\s*\w+)?\s*=\s*(.+)", text)
+    assert m, name
+    raw = m.group(1).split("//")[0].strip()
+    raw = raw.replace("_", "")
+    if raw.startswith("KeyProtocol."):
+        key = Path(_swift_core("KeyProtocol.swift")).read_text(encoding="utf-8")
+        return _swift_int_const(key, raw.split(".", 1)[1])
+    return int(raw, 0)
+
+
 class ProtocolLimitsTests(unittest.TestCase):
     def test_caps_match_core(self):
-        self.assertEqual(MAX_FRAME_BYTES, 1_048_576)
-        self.assertEqual(MAX_HEADER_BYTES, 16_384)
-        self.assertEqual(MAX_TYPE_CHARS, 2000)
-        self.assertEqual(MAX_VOICE_CHARS, 20_000)
-        self.assertEqual(PROTO, 1)
-        self.assertEqual(ALLOWED_OPCODES, frozenset({0x1, 0x2, 0x8, 0x9, 0xA}))
+        text = Path(_swift_core("ProtocolLimits.swift")).read_text(encoding="utf-8")
+        self.assertEqual(MAX_FRAME_BYTES, _swift_int_const(text, "maxFrameBytes"))
+        self.assertEqual(MAX_HEADER_BYTES, _swift_int_const(text, "maxHeaderBytes"))
+        self.assertEqual(MAX_TYPE_CHARS, _swift_int_const(text, "maxTypeChars"))
+        self.assertEqual(MAX_VOICE_CHARS, _swift_int_const(text, "maxVoiceChars"))
+        self.assertEqual(PROTO, _swift_int_const(text, "proto"))
+        self.assertEqual(CLOSE_MESSAGE_TOO_BIG, _swift_int_const(text, "closeMessageTooBig"))
+        self.assertEqual(CLOSE_UNSUPPORTED_DATA, _swift_int_const(text, "closeUnsupportedData"))
+        ops = re.search(r"allowedOpcodes: Set<UInt8> = \[(.*?)\]", text, re.S)
+        assert ops, "allowedOpcodes"
+        got = {int(x.strip(), 0) for x in ops.group(1).split(",") if x.strip()}
+        self.assertEqual(ALLOWED_OPCODES, got)
+        self.assertIn(0x0, ALLOWED_OPCODES)
+        csp = Path(_swift_core("HTMLEscape.swift")).read_text(encoding="utf-8")
+        self.assertIn(ERROR_PAGE_CSP, csp)
 
 
 class HTMLEscapeTests(unittest.TestCase):
@@ -218,25 +254,59 @@ class HTMLEscapeTests(unittest.TestCase):
 class CORSPolicyTests(unittest.TestCase):
     def test_star_and_echo_and_omit(self):
         lan = ["10.8.0.2"]  # example-ip
+        self.assertEqual(cors_allow(None, lan), ("*", False))
+        self.assertEqual(cors_allow("", lan), ("*", False))
+        self.assertEqual(cors_allow("http://127.0.0.1:7878", lan), ("http://127.0.0.1:7878", True))
+        self.assertIsNone(cors_allow("http://evil.example", lan))
         self.assertEqual(cors_allow_origin(None, lan), "*")
-        self.assertEqual(cors_allow_origin("", lan), "*")
         self.assertEqual(cors_allow_origin("http://127.0.0.1:7878", lan), "http://127.0.0.1:7878")
         self.assertIsNone(cors_allow_origin("http://evil.example", lan))
 
 
 class LANAddressTests(unittest.TestCase):
-    def test_rfc1918(self):
-        self.assertTrue(is_private_ipv4("10.8.0.2"))  # example-ip
-        self.assertTrue(is_private_ipv4("192.168.1.5"))  # example-ip
-        self.assertFalse(is_private_ipv4("127.0.0.1"))
-        self.assertFalse(is_private_ipv4("8.8.8.8"))
+    def test_shared_vectors(self):
+        path = os.path.join(HERE, "fixtures", "lan-vectors.json")
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+        swift = Path(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Tests",
+            "MagicPadServerTests",
+            "LANAddressTests.swift",
+        ).read_text(encoding="utf-8")
+        missing = []
+        for row in data["vectors"]:
+            got = is_private_ipv4(row["ip"])
+            self.assertEqual(got, row["private"], row["id"])
+            if row["ip"] not in swift:
+                missing.append(f"{row['id']}: {row['ip']!r}")
+        self.assertFalse(missing, missing)
 
 
 class FilenamesTests(unittest.TestCase):
-    def test_sanitize(self):
-        self.assertEqual(sanitize_filename("../../etc/passwd"), "passwd")
-        self.assertEqual(sanitize_filename("a<>b.txt"), "a__b.txt")
-        self.assertEqual(sanitize_filename("."), "magicpad-file.bin")
+    def test_shared_vectors(self):
+        path = os.path.join(HERE, "fixtures", "filename-vectors.json")
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+        swift = Path(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Tests",
+            "MagicPadServerTests",
+            "FilenamesTests.swift",
+        ).read_text(encoding="utf-8")
+        missing = []
+        for row in data["vectors"]:
+            self.assertEqual(sanitize_filename(row["input"]), row["out"], row["id"])
+            if row["input"] not in swift:
+                missing.append(f"{row['id']}: {row['input']!r}")
+        self.assertFalse(missing, missing)
+
+    def test_keeps_suffix_when_truncating(self):
+        got = sanitize_filename(("a" * 200) + ".txt")
+        self.assertEqual(len(got), 120)
+        self.assertTrue(got.endswith(".txt"))
 
 
 class FixtureTests(unittest.TestCase):
