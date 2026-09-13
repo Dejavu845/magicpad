@@ -250,10 +250,9 @@ def is_private_ipv4(ip: str) -> bool:
     parts = ip.split(".")
     if len(parts) != 4:
         return False
-    # Swift Int(String) is ASCII digits with optional sign. Reject
-    # underscores / Unicode digits / surrounding whitespace that Python int()
-    # would accept (Opus C6 M3).
-    if any((not p.isascii()) or (not p.isdigit()) for p in parts):
+    # One to three ASCII digits. Reject sign / underscore / Unicode digits
+    # that Python int() or Swift Int(String) would accept (Opus C7 M6).
+    if any((not p.isascii()) or (not p.isdigit()) or not (1 <= len(p) <= 3) for p in parts):
         return False
     try:
         nums = [int(p) for p in parts]
@@ -281,7 +280,12 @@ def sanitize_filename(raw: str) -> str:
     name = raw.strip().replace("\\", "/").rstrip("/")
     name = os.path.basename(name)
     name = unicodedata.normalize("NFC", name)
-    name = "".join(ch if (ch.isalnum() or ch in "._- ()[]") else "_" for ch in name)
+    # Swift CharacterSet.alphanumerics includes Mn. Keep combining marks
+    # that have no NFC precomposed form (Opus C7 §5 residual).
+    def _keep(ch: str) -> bool:
+        return ch.isalnum() or ch in "._- ()[]" or unicodedata.category(ch) == "Mn"
+
+    name = "".join(ch if _keep(ch) else "_" for ch in name)
     if len(name) > 120:
         root, ext = os.path.splitext(name)
         if ext:
