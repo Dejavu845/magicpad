@@ -384,6 +384,9 @@ def sanitize_filename(raw: str) -> str:
     return name
 
 
+# Cycle 36: documented HTTP routes. classify is WS-only (not in this set).
+HTTP_ROUTES = ("/", "/health", "/stt", "/drop", "/cert")
+
 CERT_PATH = "/cert"
 CERT_FILENAME = "magicpad-lan.cer"
 CERT_CONTENT_TYPE = "application/x-x509-ca-cert"
