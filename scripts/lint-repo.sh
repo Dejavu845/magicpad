@@ -199,7 +199,7 @@ else
   fail_step "forbidden product strings in client/server sources"
 fi
 
-# --- 8. repo integrity (min bytes/lines; no MCP \"Placeholder replaced by\" stubs) ---
+# --- 8. repo integrity (min bytes/lines; no MCP "Placeholder replaced by" stubs) ---
 # Floors: WebSocketServer.swift >=20kB/500 lines, index.html >=100kB,
 # smoke-all.sh >=20kB/500 lines, KeyProtocol.swift >=5kB.
 # Negative proof: python3 scripts/repo_integrity.py --prove-stub  (temp 140-byte stub must FAIL)
