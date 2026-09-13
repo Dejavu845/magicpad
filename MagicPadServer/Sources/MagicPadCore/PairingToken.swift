@@ -25,7 +25,7 @@ public enum PairingToken {
         return got == want
     }
 
-    /// Cycle 21: QR encodes only scheme/host/port plus optional auto=1.
+    /// Cycle 21/22: QR encodes only scheme/host/port plus optional auto=1.
     /// A photographed QR must not leak MAGICPAD_PAIRING_TOKEN.
     public static func qrURLIsSafe(_ url: String, configured: String? = nil) -> Bool {
         let lowered = url.lowercased()
@@ -34,6 +34,11 @@ public enum PairingToken {
         let token = (configured ?? Self.configured() ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         if !token.isEmpty && url.contains(token) { return false }
+        if let comps = URLComponents(string: url),
+           let items = comps.queryItems,
+           items.contains(where: { $0.name.lowercased() == helloField }) {
+            return false
+        }
         return true
     }
 }

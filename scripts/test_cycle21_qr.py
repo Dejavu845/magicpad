@@ -49,6 +49,15 @@ class Cycle21QRNeverEmbedsTokenTests(unittest.TestCase):
         self.assertFalse(
             qr_url_is_safe("http://10.8.0.2:7878/?t=secret", configured="secret")  # example-ip
         )
+        self.assertFalse(
+            qr_url_is_safe("http://10.8.0.2:7878/?pair", configured="")  # example-ip
+        )
+        self.assertFalse(
+            qr_url_is_safe("http://10.8.0.2:7878/?auto=1&pair=", configured="")  # example-ip
+        )
+        self.assertFalse(
+            qr_url_is_safe("http://10.8.0.2:7878/#pair=secret", configured="")  # example-ip
+        )
 
     def test_generate_qr_print_only_and_pair_flag(self):
         from generate_qr import build_qr_url

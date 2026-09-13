@@ -21,4 +21,9 @@ final class Cycle21QRNeverEmbedsTokenTests: XCTestCase {
             PairingToken.qrURLIsSafe("http://10.8.0.2:7878/?t=secret", configured: "secret") // example-ip
         )
     }
+
+    func testQueryItemNamedPairIsRejected() {
+        XCTAssertFalse(PairingToken.qrURLIsSafe("http://10.8.0.2:7878/?pair")) // example-ip
+        XCTAssertFalse(PairingToken.qrURLIsSafe("http://10.8.0.2:7878/?auto=1&pair=")) // example-ip
+    }
 }
