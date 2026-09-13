@@ -11,6 +11,7 @@
 
 import Foundation
 import Darwin
+import MagicPadCore
 
 /// One getifaddrs window: /health ip + ips + httpUrl host + QR host + routeIface.
 /// Pinned until path/simulate flush (no clock TTL). No `route`/`scutil` in this snapshot.
