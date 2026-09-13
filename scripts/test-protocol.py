@@ -15,6 +15,11 @@ sys.path.insert(0, HERE)
 
 from magicpad_proto import (  # noqa: E402
     ALLOWED_OPCODES,
+    CERT_CONTENT_TYPE,
+    CERT_FILENAME,
+    CERT_FORBIDDEN_BODY,
+    CERT_MISSING_BODY,
+    CERT_PATH,
     CLOSE_MESSAGE_TOO_BIG,
     CLOSE_UNSUPPORTED_DATA,
     ERROR_PAGE_CSP,
@@ -28,6 +33,8 @@ from magicpad_proto import (  # noqa: E402
     MAX_VOICE_CHARS,
     METERED_JSON_TYPES,
     PROTO,
+    cert_allows_get,
+    cert_refuses_secret,
     cors_allow,
     cors_allow_origin,
     decode_frame13,
@@ -278,6 +285,67 @@ class Cycle8HTTPOriginSmokeLockTests(unittest.TestCase):
         self.assertIn("Origin: http://evil.example", raw)
         self.assertIn("origin_rejected", raw)
         self.assertIn("Origin: http://127.0.0.1:7878", raw)
+
+
+class Cycle15CertAndDraftTests(unittest.TestCase):
+    """MP-22 GET /cert whitelist; MP-24 draft persist gates."""
+
+    def test_python_cert_route_is_cer_only(self):
+        self.assertEqual(CERT_PATH, "/cert")
+        self.assertEqual(CERT_FILENAME, "magicpad-lan.cer")
+        self.assertEqual(CERT_CONTENT_TYPE, "application/x-x509-ca-cert")
+        self.assertEqual(CERT_MISSING_BODY, "cert_not_ready")
+        self.assertEqual(CERT_FORBIDDEN_BODY, "cert_forbidden")
+        self.assertTrue(cert_allows_get("/cert"))
+        self.assertTrue(cert_allows_get("/cert/"))
+        self.assertTrue(cert_allows_get("/cert?download=1"))
+        self.assertFalse(cert_allows_get("/cert/magicpad-lan.cer"))
+        self.assertFalse(cert_allows_get("/magicpad-lan.cer"))
+        self.assertFalse(cert_allows_get("/health"))
+        self.assertTrue(cert_refuses_secret("/magicpad-lan.p12"))
+        self.assertTrue(cert_refuses_secret("/magicpad-lan-key.pem"))
+        self.assertTrue(cert_refuses_secret("/foo.key"))
+        self.assertFalse(cert_refuses_secret("/cert"))
+        self.assertFalse(cert_refuses_secret("/magicpad-lan.cer"))
+
+    def test_swift_cert_route_and_local_server_wire(self):
+        core = Path(_swift_core("CertRoute.swift")).read_text(encoding="utf-8")
+        live = _swift_live(core)
+        self.assertIn('path = "/cert"', live)
+        self.assertIn('filename = "magicpad-lan.cer"', live)
+        self.assertIn('contentType = "application/x-x509-ca-cert"', live)
+        self.assertIn('".pem"', live)
+        self.assertIn('".p12"', live)
+        proto = Path(os.path.dirname(HERE), "docs", "PROTOCOL.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("`GET /cert`", proto)
+        self.assertIn("cert_forbidden", proto)
+        sec = Path(os.path.dirname(HERE), "docs", "SECURITY.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("GET /cert", sec)
+        self.assertIn("magicpad-lan.cer", sec)
+        ws = Path(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Sources",
+            "MagicPadServer",
+            "WebSocketServer.swift",
+        ).read_text(encoding="utf-8")
+        if len(ws.encode("utf-8")) < 20_000:
+            self.skipTest("WebSocketServer.swift is the remote stub")
+        wslive = _swift_live(ws)
+        self.assertIn("CertRoute.allowsGET", wslive)
+        self.assertIn("CertRoute.refusesSecretExport", wslive)
+        self.assertIn("LANCert.cerURL", wslive)
+
+    def test_check_html_fails_missing_draft_and_cert_help(self):
+        path = os.path.join(os.path.dirname(HERE), "scripts", "check-html.py")
+        raw = Path(path).read_text(encoding="utf-8")
+        self.assertIn("magicpad_draft", raw)
+        self.assertIn("persistDraftSoon", raw)
+        self.assertIn('id="certHelp"', raw)
 
 
 class Cycle14VersionAndHTMLTests(unittest.TestCase):
