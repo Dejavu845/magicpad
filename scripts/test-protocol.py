@@ -287,6 +287,35 @@ class Cycle8HTTPOriginSmokeLockTests(unittest.TestCase):
         self.assertIn("Origin: http://127.0.0.1:7878", raw)
 
 
+class Cycle16MenuAndProtocolTests(unittest.TestCase):
+    """MP-12 voice_ack table; MP-20 menu diagnostics (no /health token)."""
+
+    def test_protocol_voice_ack_and_classify(self):
+        proto = Path(os.path.dirname(HERE), "docs", "PROTOCOL.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("### `voice_ack` reasons", proto)
+        self.assertIn("`rate_limited`", proto)
+        self.assertIn("`classify_ack`", proto)
+        self.assertIn("Never put a token in `/health`", proto)
+
+    def test_menu_shows_proto_htmlrev_clients(self):
+        path = Path(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Sources",
+            "MagicPadServer",
+            "MagicPadServer.swift",
+        )
+        raw = path.read_text(encoding="utf-8")
+        live = _swift_live(raw)
+        self.assertIn("import MagicPadCore", live)
+        self.assertIn("ProtocolLimits.proto", live)
+        self.assertIn("StaticFileLocator.htmlRev()", live)
+        self.assertIn("WebSocketServer.liveClientCount", live)
+        self.assertNotIn("pairing", live.lower())
+
+
 class Cycle15CertAndDraftTests(unittest.TestCase):
     """MP-22 GET /cert whitelist; MP-24 draft persist gates."""
 
