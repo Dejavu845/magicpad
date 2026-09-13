@@ -17,6 +17,7 @@ from magicpad_proto import (  # noqa: E402
     decode_latency_echo,
     frame13,
     frame18,
+    header_value,
     hello_payload,
     mask_frame,
     origin_allowed,
@@ -96,6 +97,62 @@ class OriginPolicyTests(unittest.TestCase):
         self.assertFalse(origin_allowed("http://evil.example", lan))
         self.assertFalse(origin_allowed("http://10.8.0.99:7878", lan))  # example-ip not in list
         self.assertFalse(origin_allowed("null", lan))
+
+
+class HeaderValueTests(unittest.TestCase):
+    def test_missing_is_none(self):
+        self.assertIsNone(header_value("GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n", "origin"))
+
+    def test_present(self):
+        blob = "GET / HTTP/1.1\r\nOrigin: http://evil.example\r\n\r\n"
+        self.assertEqual(header_value(blob, "origin"), "http://evil.example")
+
+    def test_empty_value_is_empty_string(self):
+        blob = "GET / HTTP/1.1\r\nOrigin:\r\n\r\n"
+        self.assertEqual(header_value(blob, "origin"), "")
+        self.assertTrue(origin_allowed(header_value(blob, "origin"), []))
+
+
+class SmokeWsArgTests(unittest.TestCase):
+    def test_expect_reject_flag(self):
+        import importlib.util
+
+        path = os.path.join(HERE, "smoke-ws.py")
+        spec = importlib.util.spec_from_file_location("smoke_ws", path)
+        mod = importlib.util.module_from_spec(spec)
+        assert spec.loader is not None
+        spec.loader.exec_module(mod)
+        args = mod.parse_args(["--origin", "http://evil.example", "--expect-reject"])
+        self.assertTrue(args.expect_reject)
+        self.assertEqual(args.origin, "http://evil.example")
+        args2 = mod.parse_args([])
+        self.assertFalse(args2.expect_reject)
+
+
+class RepoIntegrityTests(unittest.TestCase):
+    def test_live_tree_passes(self):
+        from repo_integrity import check
+
+        root = os.path.dirname(HERE)
+        self.assertEqual(check(root), [])
+
+    def test_remote_stub_is_140_bytes(self):
+        from repo_integrity import PLACEHOLDER_MARK, REMOTE_WS_STUB
+
+        self.assertEqual(len(REMOTE_WS_STUB), 140)
+        self.assertIn(PLACEHOLDER_MARK.encode("utf-8"), REMOTE_WS_STUB)
+
+    def test_today_stub_would_fail_gate(self):
+        from repo_integrity import PLACEHOLDER_MARK, stub_issues
+
+        root = os.path.dirname(HERE)
+        issues = stub_issues(root)
+        self.assertTrue(
+            any("WebSocketServer.swift" in i and "bytes" in i for i in issues),
+            msg=issues,
+        )
+        self.assertTrue(any(PLACEHOLDER_MARK in i for i in issues), msg=issues)
+        self.assertTrue(any("500" in i or "lines" in i for i in issues), msg=issues)
 
 
 class FixtureTests(unittest.TestCase):
