@@ -426,6 +426,15 @@ WS_TYPES = frozenset(
 )
 
 
+CLASSIFY_INJECTS = False
+
+
+def parse_classify_kind(raw: str | None) -> str | None:
+    """Cycle 30: Core Classify.parseKind mirror. Empty → None. Never injects."""
+    key = (raw or "").strip()
+    return key or None
+
+
 def parse_ws_type(raw: str | None) -> str | None:
     """Cycle 27: Core WSType.parse mirror. Exact type string; else None."""
     key = (raw or "").strip()
