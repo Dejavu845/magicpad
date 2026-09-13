@@ -396,3 +396,18 @@ def pairing_allows(provided: str | None, configured: str | None = None) -> bool:
         return True
     got = (provided or "").strip()
     return got == want
+
+
+def qr_url_is_safe(url: str, configured: str | None = None) -> bool:
+    """Cycle 21: QR / --print-only must never carry the pairing hatch."""
+    if "pair=" in url.lower():
+        return False
+    if PAIRING_ENV in url:
+        return False
+    token = configured
+    if token is None:
+        token = pairing_configured() or ""
+    token = (token or "").strip()
+    if token and token in url:
+        return False
+    return True
