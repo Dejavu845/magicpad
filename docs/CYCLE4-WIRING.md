@@ -88,7 +88,7 @@ so the error page's existing inline `style=` attributes still apply.
 lists `index.html` candidates must **not** interpolate
 `StaticFileLocator.indexHTMLCandidates()`. Those are absolute paths
 (`Bundle.main`, cwd, `#filePath` build directory — including
-`/Users/<name>`). Use `sourceLabel()` (comment: `不写家目录`), which the
+`/Users/<name>` example-path). Use `sourceLabel()` (comment: `不写家目录`), which the
 success log already uses one line earlier:
 
 ```swift
@@ -117,8 +117,9 @@ writes without a readable reply. `HTTPPostOrigin.allows` in
 
 ## 4. `/health` via `JSONText.encode`
 
-Build a `[String: Any]` with every existing `smoke-all.sh` key, then
-`JSONText.encode`. Keep `proto: ProtocolLimits.proto` additive.
+Cycle 10 wired this locally: `[String: Any]` with every existing
+`smoke-all.sh` key, then `JSONText.encode`. `proto: ProtocolLimits.proto`
+is additive. Remote stub unrestored.
 
 ## Smoke (owner Mac, after wire)
 
@@ -126,5 +127,5 @@ Build a `[String: Any]` with every existing `smoke-all.sh` key, then
 python3 scripts/smoke-ws.py --origin http://evil.example --expect-reject
 # announce 2 MiB frame → close 1009, /health still answers, server not hung
 # POST /drop + Origin: http://evil.example → 403, dropCount unchanged
-# 503 with missing index.html → body has bundle/source/env/other, no /Users/
+# 503 with missing index.html → body has bundle/source/env/other, no /Users/  # example-path
 ```

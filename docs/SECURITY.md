@@ -23,9 +23,9 @@ Phone page served from the live LAN IP still connects: that IP is in `LANDetecto
 
 ## What `/health` may expose
 
-Service flags, ports, RFC1918 IPs currently bound, `htmlRev`, inject/gesture counters, Whisper **variant name** (tiny/base). Never hostname, home path, SSID, user, or payload text.
+Service flags, ports, RFC1918 IPs currently bound, `htmlRev`, inject/gesture counters, Whisper **variant name** (tiny/base), additive `proto`. Never hostname, home path, SSID, user, or payload text. Cross-origin browsers do not read this JSON unless CORS echoes their Origin; curl without Origin still gets `*`. `ip`/`ips`/`ifaces` stay for same-LAN debug — they are not removed.
 
-This no-home-path promise is **scoped to `GET /health` JSON**. HTML 404/503 bodies (`fallbackHTML`) may still interpolate the request path and, when `index.html` is missing, `StaticFileLocator.indexHTMLCandidates()` (bundle/source paths, including `/Users/<name>`). Those pages are not covered by the `/health` smoke assertions.
+This no-home-path promise is **scoped to `GET /health` JSON**. HTML 404/503 bodies (`fallbackHTML`) may still interpolate the request path and, when `index.html` is missing, `StaticFileLocator.indexHTMLCandidates()` (bundle/source paths, including `/Users/<name>` example-path). Those pages are not covered by the `/health` smoke assertions.
 
 ## Intentional fail-closed Origin rejects
 

@@ -50,7 +50,7 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 | C4-H2 | P0 | YES | 503 must use `sourceLabel()`, not `indexHTMLCandidates()` paths (home-path rule) |
 | C4-H3 | P1 | YES | `test-protocol.py` reads `ProtocolLimits.swift` / `HTMLEscape.swift`; `lan-vectors.json` + `filename-vectors.json` |
 | C4-M1/M3 | P1 | WRITE | `LANAddress` / Python require four octets and `0...255`; `LANDetector.isPrivate` delegates |
-| C4-M2/N2 | P1 | WRITE | Unicode filenames; `\` is a separator; truncate keeps suffix; `FileDropPasteboard` calls `Filenames.sanitize` |
+| C4-M2/N2 | P1 | WRITE | Unicode filenames; `\\` is a separator; truncate keeps suffix; `FileDropPasteboard` calls `Filenames.sanitize` |
 | C4-M4/M6 | P1 | WRITE | `ProtocolLimits` type/voice caps read `KeyProtocol`; header says 1 MiB / 16 KiB are new |
 | C4-M5/M7/M8 | P1 | YES | PROTOCOL opcode/version caveats; CORS `needsVary`; CSP `style-src 'unsafe-inline'` |
 
@@ -90,6 +90,14 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 | C7-N5/N6 | P1 | YES | HTMLEscape / CORS tests open the Swift files; CSP is the `static let` value, not a file substring. |
 | C7-N9 | P1 | WRITE | Comment: pre-handshake `buffer` is the NWConnection receive queue; `parseFrame` takes `lock`. |
 
+## Cycle 10 — MP-11 / MP-17 / C7 N8 (local server; remote stub unrestored)
+
+| ID | Pri | Linux | What landed |
+|---|---|---|---|
+| MP-11 | P1 | WRITE | `proto: 1` on local `hello` / `hello_ack` / `/health`. |
+| MP-17 | P1 | WRITE | `/health` and `hello_ack` use `JSONText.encode`. |
+| C7-N8 | P1 | YES | `JSONText` uses `.withoutEscapingSlashes`. docs `/Users/` lines need `example-path`. |
+
 Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upload `WebSocketServer.swift`, `index.html`, or `scripts/smoke-all.sh`.
 
 ## Leftover P0
@@ -98,19 +106,19 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 
 | ID | Linux | Next step |
 |---|---|---|
-| MP-04 health | WRITE | `/health` still advertises `ip`/`ips`/`ifaces` (recon oracle). Pairing token stays optional/off. |
+| MP-04 health | WRITE | `ip`/`ips`/`ifaces` stay for LAN debug. CORS echo is the recon control (local). Pairing token stays optional/off. |
 
 ## Leftover P1
 
 | ID | Linux | Next step |
 |---|---|---|
-| MP-11 | WRITE | Additive `proto: 1` on `hello` / `hello_ack` / `/health` |
+| MP-11 | WRITE | Additive `proto: 1` on local `hello` / `hello_ack` / `/health` (Cycle 10). Remote stub unrestored. |
 | MP-12 | YES | Expand PROTOCOL + SECURITY to the full field/limit tables |
 | MP-13 | WRITE | Redact voice/type text in logs; `0600` on `/tmp/magicpad-server.log` |
 | MP-14 | WRITE | If Whisper missing and Apple on-device STT unsupported, refuse (`no_on_device_stt`) |
 | MP-15 | YES | Web a11y: tablist, single `<h1>`, `:focus-visible`, pad `role="application"` |
 | MP-16 | YES | Debounced resize → layout tokens; 44/48 px touch targets |
-| MP-17 | WRITE | Build `/health` with `JSONSerialization` (keep every smoke-all key) |
+| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\\/`). Remote stub unrestored. |
 
 ## Leftover P2
 
