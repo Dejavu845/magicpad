@@ -221,3 +221,55 @@ class RepoIntegrityTests(unittest.TestCase):
         )
         self.assertTrue(any(PLACEHOLDER_MARK in i for i in issues), msg=issues)
         self.assertTrue(any("500" in i or "lines" in i for i in issues), msg=issues)
+
+
+class Cycle7WiringLockTests(unittest.TestCase):
+    """Only asserts on the live 62 KB file. The 140-byte remote stub skips."""
+
+    def test_local_server_has_cycle7_inserts(self):
+        path = os.path.join(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Sources",
+            "MagicPadServer",
+            "WebSocketServer.swift",
+        )
+        raw = Path(path).read_text(encoding="utf-8")
+        if len(raw.encode("utf-8")) < 20_000:
+            self.skipTest("WebSocketServer.swift is the remote stub")
+        needles = (
+            "HTTPPostOrigin.allows",
+            "pendingCloseCode",
+            "sendCloseFrame(code:",
+            "HTMLEscape.escape",
+            "sourceLabel",
+            "ProtocolLimits.maxFrameBytes",
+            "431 Request Header Fields Too Large",
+            "426 Upgrade Required",
+            "CORSPolicy.accessControl",
+            "HTTPHeaderValue.first",
+            "import MagicPadCore",
+            "JSONText.encode",
+            "ProtocolLimits.proto",
+        )
+        missing = [n for n in needles if n not in raw]
+        self.assertFalse(missing, missing)
+        self.assertNotIn("Self.headerValue", raw)
+        self.assertNotIn("private static func headerValue", raw)
+        start = raw.index("private func parseFrame()")
+        end = raw.index("\n    func sendLatencyEcho")
+        parse = raw[start:end]
+        self.assertNotIn("closeInternal()", parse)
+        self.assertNotIn("sendCloseFrame(", parse)
+        self.assertGreaterEqual(
+            parse.count("pendingCloseCode = ProtocolLimits.closeMessageTooBig"),
+            2,
+            "Int.max 64-bit length and maxFrameBytes must both set close 1009",
+        )
+        root = os.path.dirname(HERE)
+        for rel in (
+            "MagicPadServer/Sources/MagicPadServer/LANDetector.swift",
+            "MagicPadServer/Sources/MagicPadServer/FileDropPasteboard.swift",
+        ):
+            text = Path(root, rel).read_text(encoding="utf-8")
+            self.assertIn("import MagicPadCore", text, rel)
