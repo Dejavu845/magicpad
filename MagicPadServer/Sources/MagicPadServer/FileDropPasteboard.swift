@@ -5,6 +5,7 @@
 import AppKit
 import Foundation
 import UniformTypeIdentifiers
+import MagicPadCore
 
 /// Last drop/upload outcome for /health (H1-5)
 enum DropTelemetry {
