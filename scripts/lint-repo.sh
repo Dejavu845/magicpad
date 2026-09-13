@@ -91,10 +91,10 @@ for dirpath, dirnames, filenames in os.walk(root):
                 continue
             if RFC1918.search(line):
                 rfc_hits.append(f"{rel}:{i}:{line.strip()[:160]}")
-            # /Users/<name> allowed inside docs/ (examples)
-            if rel.startswith("docs" + os.sep) or rel.startswith("docs/"):
-                continue
             if USERS.search(line):
+                # docs/ may mention /Users/<name> only with example-path on the line
+                if ("example-path" in line) or ("example-ip" in line):
+                    continue
                 user_hits.append(f"{rel}:{i}:{line.strip()[:160]}")
 
 if rfc_hits:
