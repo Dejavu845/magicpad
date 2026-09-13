@@ -383,6 +383,13 @@ STT_LANGS = frozenset({"zh-CN", "en-US", "ja-JP"})
 STT_LANG_FALLBACK = "zh-CN"
 
 
+def parse_stt_on_device(value: object | None) -> bool:
+    """Cycle 25: Core STTOnDevice.parse mirror. JSON bool only; else true."""
+    if isinstance(value, bool):
+        return value
+    return True
+
+
 def parse_stt_lang(raw: str | None) -> str:
     """Cycle 24: Core STTLang.parse mirror. Unknown → zh-CN."""
     key = (raw or "").strip()
