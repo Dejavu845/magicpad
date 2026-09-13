@@ -14,6 +14,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from magicpad_proto import (  # noqa: E402
+    PAIRING_ENV,
+    PAIRING_HELLO_FIELD,
+    PAIRING_REJECTED,
     ALLOWED_OPCODES,
     CERT_CONTENT_TYPE,
     CERT_FILENAME,
@@ -32,8 +35,12 @@ from magicpad_proto import (  # noqa: E402
     MAX_TYPE_CHARS,
     MAX_VOICE_CHARS,
     METERED_JSON_TYPES,
+    PAIRING_ENV,
+    PAIRING_HELLO_FIELD,
+    PAIRING_REJECTED,
     PROTO,
     cert_allows_get,
+    pairing_allows,
     cert_refuses_secret,
     cors_allow,
     cors_allow_origin,
@@ -285,6 +292,49 @@ class Cycle8HTTPOriginSmokeLockTests(unittest.TestCase):
         self.assertIn("Origin: http://evil.example", raw)
         self.assertIn("origin_rejected", raw)
         self.assertIn("Origin: http://127.0.0.1:7878", raw)
+
+
+class Cycle20PairingHatchTests(unittest.TestCase):
+    """Optional pairing token: default off, never in /health."""
+
+    def test_python_hatch_default_off(self):
+        self.assertEqual(PAIRING_ENV, "MAGICPAD_PAIRING_TOKEN")
+        self.assertEqual(PAIRING_HELLO_FIELD, "pair")
+        self.assertEqual(PAIRING_REJECTED, "pairing_rejected")
+        self.assertTrue(pairing_allows(None, configured=""))
+        self.assertTrue(pairing_allows("anything", configured=""))
+        self.assertTrue(pairing_allows("secret", configured="secret"))
+        self.assertFalse(pairing_allows("nope", configured="secret"))
+        self.assertFalse(pairing_allows(None, configured="secret"))
+
+    def test_swift_and_docs(self):
+        core = Path(_swift_core("PairingToken.swift")).read_text(encoding="utf-8")
+        live = _swift_live(core)
+        self.assertIn('envName = "MAGICPAD_PAIRING_TOKEN"', live)
+        self.assertIn('helloField = "pair"', live)
+        self.assertIn('rejectedReason = "pairing_rejected"', live)
+        proto = Path(os.path.dirname(HERE), "docs", "PROTOCOL.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("pairing_rejected", proto)
+        self.assertIn("MAGICPAD_PAIRING_TOKEN", proto)
+        start = proto.find("### `GET /health` keys")
+        end = proto.find("\n## ", start + 1)
+        self.assertNotIn("pair", proto[start:end])
+        ws = Path(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Sources",
+            "MagicPadServer",
+            "WebSocketServer.swift",
+        ).read_text(encoding="utf-8")
+        if len(ws.encode("utf-8")) < 20_000:
+            self.skipTest("WebSocketServer.swift is the remote stub")
+        wslive = _swift_live(ws)
+        self.assertIn("PairingToken.allows", wslive)
+        health_fn = ws[ws.find("healthJSON") : ws.find("healthJSON") + 2500]
+        self.assertNotIn("PairingToken", health_fn)
+        self.assertNotIn("MAGICPAD_PAIRING_TOKEN", health_fn)
 
 
 class Cycle19STTAndEngineeringTests(unittest.TestCase):
