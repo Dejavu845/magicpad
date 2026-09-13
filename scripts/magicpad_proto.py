@@ -344,3 +344,31 @@ def sanitize_filename(raw: str) -> str:
     if not name or name in {".", "..", "..."}:
         return "magicpad-file.bin"
     return name
+
+
+CERT_PATH = "/cert"
+CERT_FILENAME = "magicpad-lan.cer"
+CERT_CONTENT_TYPE = "application/x-x509-ca-cert"
+CERT_MISSING_BODY = "cert_not_ready"
+CERT_FORBIDDEN_BODY = "cert_forbidden"
+CERT_REFUSED_SUFFIXES = (".pem", ".p12", ".key")
+
+
+def cert_normalized_path(raw: str) -> str:
+    """Mirror of CertRoute.normalizedPath — query and trailing slash stripped."""
+    from urllib.parse import unquote
+
+    clean = (raw or "").split("?", 1)[0]
+    clean = unquote(clean).strip()
+    while len(clean) > 1 and clean.endswith("/"):
+        clean = clean[:-1]
+    return clean or "/"
+
+
+def cert_allows_get(raw: str) -> bool:
+    return cert_normalized_path(raw) == CERT_PATH
+
+
+def cert_refuses_secret(raw: str) -> bool:
+    p = cert_normalized_path(raw).lower()
+    return any(p.endswith(s) for s in CERT_REFUSED_SUFFIXES)
