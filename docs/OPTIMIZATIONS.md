@@ -128,6 +128,12 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 | MP-16 | P1 | YES | Debounced `syncLayoutSoon` (80 ms) on `resize` / `visualViewport.resize`. 44/48 px min-size guard; kb-open draft bar exempt. |
 | MP-19 | P2 | YES | `AppVersion.string` in `Version.swift`; `build_app.sh` greps it and uses `swift build --show-bin-path`. |
 
+## Cycle 29 — pairing hatch never a /health key
+
+| ID | Linux | What |
+|---|---|---|
+| pairing | YES | `forbiddenHealthKeys` / `health_allows_key`. PROTOCOL `/health` key list and local `healthJSON` omit `pair` / env name. Tests in `scripts/test_cycle29_health_pair.py`. |
+
 ## Cycle 28 — QR LAN uses Core RFC1918 gate
 
 | ID | Linux | What |
