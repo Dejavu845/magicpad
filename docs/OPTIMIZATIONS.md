@@ -128,6 +128,13 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 | MP-16 | P1 | YES | Debounced `syncLayoutSoon` (80 ms) on `resize` / `visualViewport.resize`. 44/48 px min-size guard; kb-open draft bar exempt. |
 | MP-19 | P2 | YES | `AppVersion.string` in `Version.swift`; `build_app.sh` greps it and uses `swift build --show-bin-path`. |
 
+## Cycle 15 — MP-24 draft persist + MP-22 GET /cert
+
+| ID | Pri | Linux | What landed |
+|---|---|---|---|
+| MP-24 | P2 | YES | `localStorage` key `magicpad_draft`; `persistDraftSoon` 300 ms; restore on load; clear on `voice_ack{ok, replace}` and 清空本框. `check-html.py` FAIL without the key / helper / `#certHelp`. `index.html` local-only (do not MCP-upload). htmlRev `20260913-1615-h810`. |
+| MP-22 | P2 | WRITE | `CertRoute` whitelist: exact `/cert` → `magicpad-lan.cer` + `application/x-x509-ca-cert`. `.pem` / `.p12` / `.key` → 404 `cert_forbidden`. Local `serveStaticFile` wire; remote stub unrestored. |
+
 ## Leftover P0
 
 None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
@@ -146,7 +153,7 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 | MP-14 | WRITE | Cycle 12: refuse `no_on_device_stt` when Whisper missing and Apple on-device unsupported. Remote SpeechSession unrestored until human push. |
 | MP-15 | YES | Cycle 14: tablist / h1 / `:focus-visible` / application. `index.html` unrestored on remote until human push. |
 | MP-16 | YES | Cycle 14: `syncLayoutSoon` + 44/48 px guard. Same `index.html` human push. |
-| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\/`). Remote stub unrestored. |
+| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\\/`). Remote stub unrestored. |
 
 ## Leftover P2
 
@@ -154,11 +161,11 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 |---|---|
 | MP-18 | Move binary/WS/LAN/filename parsers into `MagicPadCore` + shared fixtures |
 | MP-19 | Cycle 14: `Version.swift` + `swift build --show-bin-path`. |
-| MP-20 | Menu diagnostics line (proto / htmlRev / clients); cert export |
+| MP-20 | Menu diagnostics line (proto / htmlRev / clients); cert export from the menu |
 | MP-21 | Playwright 4-viewport layout on Linux |
-| MP-22 | `GET /cert` (public `.cer` only) + in-page Safari/Chrome steps |
+| MP-22 | Cycle 15: `CertRoute` + local `GET /cert`. HTML `#certHelp` unrestored on remote until human push. |
 | MP-23 | Cycle 13: Core + Python bucket; local server wire. Remote stub unrestored. |
-| MP-24 | Persist dictation draft in `localStorage` (clear on replace-mode ack) |
+| MP-24 | Cycle 15: `magicpad_draft` persist in local `index.html`. Same human push. |
 
 ## Optional security (not scheduled)
 
