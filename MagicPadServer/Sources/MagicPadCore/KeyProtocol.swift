@@ -401,7 +401,8 @@ public enum KeyProtocol {
         public var isEmpty: Bool { reason == "empty" }
     }
 
-    /// Pure voice parse: non-string / empty / whitespace-only → reason "empty";
+    /// Pure voice parse: missing/null/whitespace-only → reason "empty";
+    /// non-string `text` → reason "bad_voice" (no inject, distinct from empty);
     /// grapheme-clamp to `maxVoiceChars` → truncated + reason "voice_truncated";
     /// lang ∈ {zh-CN, en-US, ja-JP} else zh-CN; mode ∈ {append, replace} else append;
     /// autoPaste JSON boolean else default true.
@@ -430,7 +431,7 @@ public enum KeyProtocol {
         }
         guard let s = rawVal as? String else {
             let (lang, mode, paste) = langAndModeAndPaste()
-            return ParsedVoice(text: "", lang: lang, autoPaste: paste, mode: mode, truncated: false, reason: "empty")
+            return ParsedVoice(text: "", lang: lang, autoPaste: paste, mode: mode, truncated: false, reason: "bad_voice")
         }
         let (lang, mode, paste) = langAndModeAndPaste()
         if s.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
