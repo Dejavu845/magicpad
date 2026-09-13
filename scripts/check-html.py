@@ -147,6 +147,12 @@ def main(argv: list[str]) -> int:
         fails.append('missing pad role="application"')
     if "syncLayoutSoon" not in raw:
         fails.append("missing debounced syncLayoutSoon")
+    if "magicpad_draft" not in raw:
+        fails.append("missing magicpad_draft persist key")
+    if "persistDraftSoon" not in raw:
+        fails.append("missing persistDraftSoon")
+    if 'id="certHelp"' not in raw:
+        fails.append('missing details#certHelp')
 
     node_ok = "skip"
     scripts = re.findall(r"<script>(.*?)</script>", raw, re.S | re.I)

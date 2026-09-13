@@ -38,6 +38,7 @@ Unknown JSON `type` is ignored. Non-object / non-string `type` is ignored.
 | `GET /health` | Unauthenticated JSON via `JSONText.encode` (local). Keys include `proto`. `ip`/`ips`/`ifaces` stay for LAN debug; CORS echo is the recon control. No-home-path / no-hostname promise is **this route only** — see `docs/SECURITY.md` |
 | `POST /stt` | ≤ 10 MB audio. Cycle 7 wired `HTTPPostOrigin.allows` locally (403 `origin_rejected`). Cycle 12 refuses `no_on_device_stt` when Whisper is missing and Apple on-device is unsupported. Remote stub unrestored. |
 | `POST /drop` | ≤ 50 MB file → pasteboard + optional Cmd+V (`autoPaste` default true). Same local Origin check as `/stt`. |
+| `GET /cert` | Cycle 15 (MP-22): public DER only (`magicpad-lan.cer`, `application/x-x509-ca-cert`, `Content-Disposition` attachment). Exact `/cert`. Missing file → 404 `cert_not_ready`. `.pem` / `.p12` / `.key` paths → 404 `cert_forbidden`. Never those secret files. Local `WebSocketServer` wire; remote stub unrestored. |
 
 ### `GET /health` keys (smoke-all contract + `proto`)
 

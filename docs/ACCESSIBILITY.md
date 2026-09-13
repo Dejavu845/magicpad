@@ -57,3 +57,7 @@ The phone page is a single HTML file. Cycle 14:
 - `:focus-visible` outline is `#7fd1ff`.
 - `user-scalable=no` is a documented exception to WCAG 1.4.4: pinch on the pad is a gesture, not page zoom. Voice textarea uses `font-size: clamp(16px, …)` so iOS does not auto-zoom on focus.
 - `#voiceStatus` is `aria-live="polite"`. `#statusBar` has Enter/Space and `aria-label`.
+
+## LAN cert install (MP-22)
+
+Cycle 15 adds `<details id="certHelp">` under `#macSttHint`. The only download is `GET /cert` → `magicpad-lan.cer`. Safari: install the profile, then enable Certificate Trust Settings. Pinch-zoom remains a pad gesture (`user-scalable=no`).
