@@ -35,4 +35,4 @@ build/              gitignored .app output
 
 See `docs/architecture.md`, `docs/ENGINEERING.md` (workflow + Linux vs Mac gates), `docs/PROTOCOL.md`, `docs/SECURITY.md`.
 
-Cloud Agents: `.cursor/environment.json` (shellcheck + Python; Swift optional). Linux CI is `./scripts/lint-repo.sh` + `python3 scripts/check-html.py` + `python3 -m unittest scripts/test-protocol.py`. WebSocket Origin is allowlisted (`MAGICPAD_ALLOW_ANY_ORIGIN=1` debug hatch only).
+Cloud Agents: `.cursor/environment.json` (shellcheck + Python; Swift optional). Linux CI is `./scripts/lint-repo.sh` + `python3 scripts/check-html.py` + `python3 -m unittest scripts/test-protocol.py`. Integrity floors fail a 140-byte `WebSocketServer.swift` stub. WebSocket Origin is allowlisted (`MAGICPAD_ALLOW_ANY_ORIGIN=1` debug hatch only); `POST /drop` has no Origin check yet.

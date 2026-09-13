@@ -1,6 +1,6 @@
 # MagicPad optimizations — implemented vs leftover
 
-Ranked work from the Cycle 1 engineering pass. **Do not** open items for: cloud LLM/agent, public tunnel, Whisper weights in git, phone App Store app, 13B/18B layout changes, or `pending/armed/multi`.
+Ranked work from the Cycle 1 engineering pass and Cycle 2 integrity/docs. **Do not** open items for: cloud LLM/agent, public tunnel, Whisper weights in git, phone App Store app, 13B/18B layout changes, or `pending/armed/multi`.
 
 Priority: **P0** security/correctness · **P1** gates and product-visible fixes · **P2** nice-to-have.  
 Linux: **YES** fully verifiable here · **WRITE** Swift written here, Mac owner compiles.
@@ -15,17 +15,20 @@ Linux: **YES** fully verifiable here · **WRITE** Swift written here, Mac owner 
 | MP-09 | P1 | YES | `scripts/magicpad_proto.py` + `scripts/test-protocol.py` + `scripts/fixtures/key-aliases.json` |
 | MP-05 | P1 | YES | GitHub Actions `linux-checks` + PR template + README CI line |
 | MP-10 | P1 | YES | Host validation, `escapeHtml`, HTTPS tip without string-concat `innerHTML` |
-| MP-01 | P0 | WRITE | `OriginPolicy` — reject non-LAN WebSocket `Origin` (403). Hatch `MAGICPAD_ALLOW_ANY_ORIGIN=1` |
-| MP-03 | P0 | WRITE | `KeyProtocol.parseVoice` — clamp 20_000 graphemes, ack `voice_truncated` |
+| MP-01 | P0 | WRITE | `OriginPolicy` — reject non-LAN WebSocket `Origin` (403). Hatch `MAGICPAD_ALLOW_ANY_ORIGIN=1`. **Does not cover HTTP POST.** |
+| MP-03 | P0 | WRITE | `KeyProtocol.parseVoice` — clamp 20_000 graphemes, ack `voice_truncated`; Cycle 2 `bad_voice` for non-string `text` |
+| MP-25 | P0 | YES | `lint-repo.sh` integrity floors + placeholder marker; `--prove-stub` rejects the 140-byte remote WebSocketServer |
+| MP-26 | P1 | YES | `smoke-ws.py --expect-reject` (403 assertion reusable outside `smoke-all.sh`) |
+| MP-27 | P0 | WRITE | `HTTPHeaderValue` + `HTTPPostOrigin` in Core + `docs/CYCLE3-HTTP-ORIGIN.md` (not yet called from `beginHTTPPost`) |
 
-Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin), `docs/PROTOCOL.md` (JSON catalogue seed). Full MP-12 still leftover.
+Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP gap; `/health`-scoped path promise), `docs/PROTOCOL.md` (JSON catalogue seed). Full MP-12 still leftover.
 
 ## Leftover P0
 
 | ID | Linux | Next step |
 |---|---|---|
-| MP-02 | WRITE | Cap WS frames at 1 MiB and headers at 16 KiB; require `Sec-WebSocket-Version: 13` |
-| MP-04 | WRITE | Echo allowlisted `Origin` instead of CORS `*`; keep `*` when the request has no Origin (curl smoke) |
+| MP-02 | WRITE | Cap WS frames at 1 MiB and headers at 16 KiB; require `Sec-WebSocket-Version: 13`; parse `Upgrade` rather than scanning the blob |
+| MP-04 | WRITE | **`OriginPolicy.isAllowed` in `beginHTTPPost` before pasteboard/STT** (`docs/CYCLE3-HTTP-ORIGIN.md`). Echo allowlisted `Origin` instead of CORS `*` is *not* sufficient — a CORS-simple `no-cors` POST writes regardless of who can read the reply. Keep `*` when Origin is missing (curl smoke). `/health` wildcard CORS is a recon oracle (`ip`/`ips`/`ifaces`). |
 
 ## Leftover P1
 

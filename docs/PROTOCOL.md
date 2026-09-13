@@ -22,22 +22,24 @@ Phases: 0 down · 1 move · 2 up · 3 cancel · 10 double · 11 right · 20 scro
 | `ping` | `ts` | `pong{ts, serverTs}` |
 | `key` | `action` (allowlist + aliases), `count`/`repeat` 1…200 | `voice_ack{ok, reason}` — `empty_action` `bad_action` `bad_count` `unknown_action` or canonical action |
 | `type` / `text` | `text` string, max **2000** graphemes | `empty_type` `bad_type` `type` `type_truncated` |
-| `voice` | `text` string, max **20000** graphemes; `lang` ∈ zh-CN, en-US, ja-JP (else zh-CN); `mode` ∈ append, replace (else append); `autoPaste` JSON bool (else true) | `empty` · `voice_truncated` (ok, clipboard wrote the prefix) · `ax_denied_clipboard_ok` · `append`/`replace` |
+| `voice` | `text` string, max **20000** graphemes; `lang` ∈ zh-CN, en-US, ja-JP (else zh-CN); `mode` ∈ append, replace (else append); `autoPaste` JSON bool (else true) | `empty` · `bad_voice` (non-string `text`, no inject) · `voice_truncated` (ok, clipboard wrote the prefix) · `ax_denied_clipboard_ok` · `append`/`replace` |
 | `classify` | `kind`, `reason`, `phase` | `classify_ack` — telemetry only, **no inject** |
 | `stt` | `action` start/stop/status | `stt_status` / `stt_final` — on-device only |
 
 Unknown JSON `type` is ignored. Non-object / non-string `type` is ignored.
+
+`maxVoiceChars` is 20000 while `maxTypeChars` is 2000 because voice lands on the pasteboard and is not `keySerial`-bound. Type injects keystrokes on the inject serial; a 10× clipboard clamp is defensible and currently unthrottled by the JSON token bucket (MP-23 leftover).
 
 ## HTTP
 
 | Route | Notes |
 |---|---|
 | `GET /` | Phone page (bundled `index.html`) |
-| `GET /health` | Unauthenticated JSON; see `docs/SECURITY.md` |
-| `POST /stt` | ≤ 10 MB audio |
-| `POST /drop` | ≤ 50 MB file → pasteboard |
+| `GET /health` | Unauthenticated JSON; no-home-path / no-hostname promise is **this route only** — see `docs/SECURITY.md` |
+| `POST /stt` | ≤ 10 MB audio. **No Origin check yet** (Cycle 3: `docs/CYCLE3-HTTP-ORIGIN.md`) |
+| `POST /drop` | ≤ 50 MB file → pasteboard + optional Cmd+V (`autoPaste` default true). **No Origin check yet** — MP-01 did not close this door |
 
-CORS: curl without `Origin` still sees `Access-Control-Allow-Origin: *` (smoke-all). Reflect-allowlist is leftover MP-04.
+CORS: curl without `Origin` still sees `Access-Control-Allow-Origin: *` (smoke-all). Echo-allowlist (old MP-04) does **not** stop a CORS-simple `no-cors` POST write. The HTTP Origin check is leftover Cycle 3, not a CORS header change.
 
 ## htmlRev
 
