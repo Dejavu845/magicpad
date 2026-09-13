@@ -120,6 +120,7 @@ Inbound: `type=stt`, `action` ∈ `start`/`begin`/`on` · `stop`/`end`/`off` · 
 | allowed opcodes | 0x0 0x1 0x2 0x8 0x9 0xA | close 1003 on others — Cycle 7 wired locally. `0x0` is listed so fragmented browsers are not disconnected; reassembly is not implemented |
 | `maxClients` | 8 | Cycle 13 wired locally: 9th TCP accept is HTTP 503 `too_many_clients` (no WS upgrade). Remote stub unrestored. |
 | `jsonTokensPerSec` / `jsonBurst` | 40 / 80 | Cycle 13: `type`/`text`/`voice` only. Ack `rate_limited`. Never throttle binary 120 Hz. |
+| binary payload | 7 / 13 / 18 bytes | Cycle 26: `BinaryFrame.parse` / `parse_binary_frame`. &lt;7 → drop (no inject). 13-byte pointer (phase/dx/dy/pressure/buttons/tMs/seq). 18-byte gesture adds fingers/gesture/ext. Phases: 0 down · 1 move · 2 up · 3 cancel · 10 dbl · 11 right · 20 scroll · 21 pinch · 22 triple · 23 smartzoom · 24 mission. Unknown phase stays `unknown`. Local inject + latency echo use Core; remote stub unrestored. |
 
 Wiring notes: `docs/CYCLE4-WIRING.md`. HTTP Origin: `docs/CYCLE3-HTTP-ORIGIN.md`.
 
