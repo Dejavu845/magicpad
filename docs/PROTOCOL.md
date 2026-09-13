@@ -59,6 +59,10 @@ Inbound `kind` / `reason` / `phase` (optional `net` `path` `ms` `scale`). Ack `c
 
 A pairing token on QR / `hello` is optional and default-off. Never put a token in `/health`.
 
+### Pairing hatch (Cycle 20)
+
+Env `MAGICPAD_PAIRING_TOKEN` empty → off (current product). When set, `hello` must send `pair` equal to that value or the ack is `hello_ack{ok:false, reason:pairing_rejected}`. The token is never a `/health` key. Local `WebSocketServer` hello wire; remote stub unrestored.
+
 `maxVoiceChars` is 20000 while `maxTypeChars` is 2000 because voice lands on the pasteboard and is not `keySerial`-bound. Type injects keystrokes on the inject serial. Cycle 13 meters `type` / `text` / `voice` with `JSONRateLimit` (40/s, burst 80). Over the burst the ack is `voice_ack{ok:false, reason:rate_limited}` and nothing is injected. `key` / `ping` / `hello` / `stt` / `classify` and every binary 13/18-byte frame are **not** metered.
 
 ## HTTP

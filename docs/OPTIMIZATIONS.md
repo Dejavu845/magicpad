@@ -128,6 +128,12 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 | MP-16 | P1 | YES | Debounced `syncLayoutSoon` (80 ms) on `resize` / `visualViewport.resize`. 44/48 px min-size guard; kb-open draft bar exempt. |
 | MP-19 | P2 | YES | `AppVersion.string` in `Version.swift`; `build_app.sh` greps it and uses `swift build --show-bin-path`. |
 
+## Cycle 20 — optional pairing hatch (default off)
+
+| ID | Pri | Linux | What landed |
+|---|---|---|---|
+| pairing | P2 | WRITE | `PairingToken` + Python mirror. Empty `MAGICPAD_PAIRING_TOKEN` allows all. Set → `hello.pair` or `pairing_rejected`. Never a `/health` key. Local hello wire. |
+
 ## Cycle 19 — MP-12 STT JSON + ENGINEERING Origin present tense
 
 | ID | Pri | Linux | What landed |
@@ -184,7 +190,7 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 ## Leftover P2
 
 | ID | Next step |
-|---|---|---|
+|---|---|
 | MP-18 | Move binary/WS/LAN/filename parsers into `MagicPadCore` + shared fixtures |
 | MP-19 | Cycle 14: `Version.swift` + `swift build --show-bin-path`. |
 | MP-20 | Cycle 16: menu/About diagnostics (`proto` / htmlRev / clients). Cert dir button already existed. |
@@ -195,4 +201,4 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 
 ## Optional security (not scheduled)
 
-A **pairing token** on the QR / hello is OK only if optional, default-off, and backward compatible. Do not require it without a protocol bump and tests. Never put the token in `/health`.
+A **pairing token** on the QR / hello is Cycle 20: optional, default-off, backward compatible. Env hatch + local hello wire. Never put the token in `/health`. QR still does not embed a token.
