@@ -5,7 +5,7 @@ generate_qr.py — 生成 MagicPad 手机连接二维码（构建期 PNG，运�
 用法:
     python3 scripts/generate_qr.py
     python3 scripts/generate_qr.py --auto
-    python3 scripts/generate_qr.py 10.0.0.12 --output /path/to/qr.png
+    python3 scripts/generate_qr.py 10.0.0.12 --output /path/to/qr.png  # example-ip
     python3 scripts/generate_qr.py --http   # force HTTP :7878
     python3 scripts/generate_qr.py --print-only --auto  # URL only, no PNG
 
