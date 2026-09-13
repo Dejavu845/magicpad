@@ -128,6 +128,12 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 | MP-16 | P1 | YES | Debounced `syncLayoutSoon` (80 ms) on `resize` / `visualViewport.resize`. 44/48 px min-size guard; kb-open draft bar exempt. |
 | MP-19 | P2 | YES | `AppVersion.string` in `Version.swift`; `build_app.sh` greps it and uses `swift build --show-bin-path`. |
 
+## Cycle 23 — STT action parser in Core
+
+| ID | Pri | Linux | What landed |
+|---|---|---|---|
+| MP-18 | P2 | YES | `STTAction.parse` + `parse_stt_action`. Aliases `start`/`begin`/`on` · `stop`/`end`/`off` · `status`. Unknown → `bad_action`. Local `handleSTTControl` uses Core. Tests in `scripts/test_cycle23_stt.py`. |
+
 ## Cycle 22 — QR query-key `pair` lock
 
 | ID | Pri | Linux | What landed |
@@ -203,7 +209,7 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 
 | ID | Next step |
 |---|---|
-| MP-18 | Move binary/WS/LAN/filename parsers into `MagicPadCore` + shared fixtures |
+| MP-18 | Cycle 23: `STTAction` in Core. Remaining: binary/WS/LAN parsers + shared fixtures |
 | MP-19 | Cycle 14: `Version.swift` + `swift build --show-bin-path`. |
 | MP-20 | Cycle 16: menu/About diagnostics (`proto` / htmlRev / clients). Cert dir button already existed. |
 | MP-21 | Playwright 4-viewport layout on Linux |
