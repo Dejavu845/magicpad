@@ -1,6 +1,7 @@
 // JSONText.swift
-// Sorted-key JSON for /health and acks. Replaces string-interpolated JSON
-// once WebSocketServer.swift is restored (docs/CYCLE4-WIRING.md).
+// Sorted-key JSON for /health and acks. Cycle 10 wired local healthJSON /
+// hello_ack (docs/CYCLE4-WIRING.md). Remote stub unrestored.
+// `.withoutEscapingSlashes` matches Python json.dumps (no \/ ).
 
 import Foundation
 
@@ -9,7 +10,7 @@ public enum JSONText {
         guard JSONSerialization.isValidJSONObject(obj) else { return nil }
         guard let data = try? JSONSerialization.data(
             withJSONObject: obj,
-            options: [.sortedKeys]
+            options: [.sortedKeys, .withoutEscapingSlashes]
         ) else { return nil }
         return String(data: data, encoding: .utf8)
     }
