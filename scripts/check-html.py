@@ -153,6 +153,8 @@ def main(argv: list[str]) -> int:
         fails.append("missing persistDraftSoon")
     if 'id="certHelp"' not in raw:
         fails.append('missing details#certHelp')
+    if "pair=" in raw.lower():
+        fails.append("QR / HTML must never embed pair=")
 
     node_ok = "skip"
     scripts = re.findall(r"<script>(.*?)</script>", raw, re.S | re.I)

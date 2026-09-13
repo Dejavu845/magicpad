@@ -27,7 +27,7 @@ Service flags, ports, RFC1918 IPs currently bound, `htmlRev`, inject/gesture cou
 
 This no-home-path promise is **scoped to `GET /health` JSON**. HTML 404/503 bodies (`fallbackHTML`) may still interpolate the request path and, when `index.html` is missing, `StaticFileLocator.indexHTMLCandidates()` (bundle/source paths, including `/Users/<name>` example-path). Those pages are not covered by the `/health` smoke assertions.
 
-A pairing token on the QR / `hello` is optional and default-off (`MAGICPAD_PAIRING_TOKEN` empty). When set, local `hello` requires `pair` or `hello_ack` is `pairing_rejected`. **Never put a pairing token in `/health`.**
+A pairing token on `hello` is optional and default-off (`MAGICPAD_PAIRING_TOKEN` empty). When set, local `hello` requires `pair` or `hello_ack` is `pairing_rejected`. **Never put a pairing token in `/health`.** Cycle 21: QR / `--print-only` must never embed `pair=` or the env value.
 
 ## Intentional fail-closed Origin rejects
 

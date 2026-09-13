@@ -91,7 +91,7 @@ python3 scripts/smoke-https.py            # WARN-level TLS
 ./scripts/lint-repo.sh
 python3 scripts/check-html.py MagicPadClient/index.html
 python3 -m unittest scripts/test-protocol.py -v
-python3 scripts/generate_qr.py --print-only --http
+python3 scripts/generate_qr.py --print-only --http   # Cycle 21: URL never contains pair= / token
 ```
 
 Environment bootstrap: `.cursor/environment.json` installs `shellcheck`, `websocket-client`, `qrcode[pil]`. Swift is optional — install must **not** fail if the toolchain or macOS frameworks are missing.
