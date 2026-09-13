@@ -5,18 +5,27 @@
 import Foundation
 
 public enum CORSPolicy {
-    /// Missing / empty Origin → `*` (smoke-all curl).
-    /// Allowlisted Origin → echo the trimmed header (plus caller should send Vary).
+    public struct AccessControl: Equatable, Sendable {
+        public let allowOrigin: String
+        public let needsVary: Bool
+    }
+
+    /// Missing / empty Origin → `*` and no Vary (smoke-all curl).
+    /// Allowlisted Origin → echo the trimmed header and `needsVary == true`.
     /// Disallowed → `nil` (omit Access-Control-Allow-Origin).
-    public static func accessControlAllowOrigin(
+    public static func accessControl(
         origin: String?,
         lanIPs: [String]
-    ) -> String? {
-        guard let origin else { return "*" }
+    ) -> AccessControl? {
+        guard let origin else {
+            return AccessControl(allowOrigin: "*", needsVary: false)
+        }
         let trimmed = origin.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty { return "*" }
+        if trimmed.isEmpty {
+            return AccessControl(allowOrigin: "*", needsVary: false)
+        }
         if OriginPolicy.isAllowed(origin: origin, lanIPs: lanIPs) {
-            return trimmed
+            return AccessControl(allowOrigin: trimmed, needsVary: true)
         }
         return nil
     }

@@ -1,6 +1,8 @@
 // HTMLEscape.swift
 // Escape untrusted text before interpolating into fallbackHTML (Opus H1).
 // Wire in WebSocketServer.fallbackHTML after the 62 KB file is restored.
+// This is for a text-content sink (`<p>`). It does not escape backtick or `=`;
+// do not reuse it for an unquoted attribute value.
 
 import Foundation
 
@@ -21,6 +23,6 @@ public enum HTMLEscape {
         return out
     }
 
-    public static let errorPageCSP = "default-src 'none'"
+    public static let errorPageCSP = "default-src 'none'; style-src 'unsafe-inline'"
     public static let nosniff = "nosniff"
 }

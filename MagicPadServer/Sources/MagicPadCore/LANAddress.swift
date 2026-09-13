@@ -1,13 +1,21 @@
 // LANAddress.swift
-// Pure IPv4 RFC1918 check copied from LANDetector.isPrivate (no getifaddrs).
+// RFC1918 IPv4 check. Cycle 6: split first, require exactly four components,
+// then parse, then 0...255 — do not compactMap before the count (that treated
+// "10.a.0.0.1" as a 10/8 address). Same rule belongs in LANDetector.isPrivate.
 
 import Foundation
 
 public enum LANAddress {
     /// True for 10/8, 172.16/12, 192.168/16. False for loopback, link-local, public.
     public static func isPrivate(_ ip: String) -> Bool {
-        let parts = ip.split(separator: ".").compactMap { Int($0) }
-        guard parts.count == 4 else { return false }
+        let tokens = ip.split(separator: ".", omittingEmptySubsequences: false)
+        guard tokens.count == 4 else { return false }
+        var parts: [Int] = []
+        parts.reserveCapacity(4)
+        for token in tokens {
+            guard let n = Int(token), (0...255).contains(n) else { return false }
+            parts.append(n)
+        }
         if parts[0] == 127 { return false }
         if parts[0] == 169 && parts[1] == 254 { return false }
         if parts[0] == 192 && parts[1] == 168 { return true }
