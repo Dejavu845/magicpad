@@ -9,6 +9,12 @@ public enum PairingToken {
     public static let envName = "MAGICPAD_PAIRING_TOKEN"
     public static let helloField = "pair"
     public static let rejectedReason = "pairing_rejected"
+    /// Cycle 29: these must never be GET /health keys (hello-only hatch).
+    public static let forbiddenHealthKeys: Set<String> = [helloField, envName]
+
+    public static func healthAllowsKey(_ key: String) -> Bool {
+        !forbiddenHealthKeys.contains(key)
+    }
 
     public static func configured(
         _ read: (String) -> String? = { ProcessInfo.processInfo.environment[$0] }
