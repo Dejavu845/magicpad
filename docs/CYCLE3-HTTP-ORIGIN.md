@@ -40,12 +40,11 @@ Helpers already in `MagicPadCore` (Cycle 2):
 - `HTTPPostOrigin.allows` — delegates to `OriginPolicy.isAllowed`.
 
 Missing Origin (`first` returns `nil`) → allow (curl / `smoke-all.sh` POST /drop).
-Present-but-empty → allow in the policy function (curl-shaped), once this parser
-is used. Today's `WebSocketServer.headerValue` still maps empty to `"Origin"` and
-**rejects** — fail-closed, documented in `docs/SECURITY.md`.
+Present-but-empty → allow (`""`). Cycle 8 deleted `WebSocketServer.headerValue`;
+`beginHTTPPost` reads length / type / lang / filename / autopaste through
+`HTTPHeaderValue.first` as well.
 
-Also replace the handshake Origin / `Sec-WebSocket-Key` loops at
-`handleHandshake` with `HTTPHeaderValue.first` so the empty-value branch is live.
+Handshake Origin / `Sec-WebSocket-Key` / version already use `HTTPHeaderValue.first`.
 
 ## Smoke (owner Mac, after the Swift wire)
 

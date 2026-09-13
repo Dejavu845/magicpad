@@ -40,6 +40,9 @@ if len > ProtocolLimits.maxFrameBytes {
     pendingCloseCode = ProtocolLimits.closeMessageTooBig
     return nil
 }
+// Cycle 8: the 64-bit length `v > Int.max` (RFC 6455 top bit) branch
+// must set the same close code before `return nil`, or the connection
+// stays open and `buffer` grows without a cap.
 if !ProtocolLimits.allowedOpcodes.contains(opcode) {
     pendingCloseCode = ProtocolLimits.closeUnsupportedData
     return nil
