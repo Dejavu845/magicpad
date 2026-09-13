@@ -56,6 +56,10 @@ open build/MagicPad.app
 
 有 base 用 base，否则回退 tiny。不要把权重推进 GitHub。
 
+## CI
+
+Linux checks (`./scripts/lint-repo.sh`, `check-html.py`, protocol unit tests, QR invariants) run on every push via GitHub Actions. Mac gates (`swift test`, `./scripts/build_app.sh`, `./scripts/smoke-all.sh`) are run by the owner — this repo does not compile on Linux.
+
 ## 架构
 
 见 [`docs/architecture.md`](docs/architecture.md)。
