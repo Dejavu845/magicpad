@@ -187,3 +187,143 @@ class SmokeWsArgTests(unittest.TestCase):
         self.assertEqual(args.origin, "http://evil.example")
         args2 = mod.parse_args([])
         self.assertFalse(args2.expect_reject)
+
+
+class RepoIntegrityTests(unittest.TestCase):
+    def test_live_tree_passes(self):
+        from repo_integrity import check
+
+        root = os.path.dirname(HERE)
+        self.assertEqual(check(root), [])
+
+    def test_remote_stub_is_140_bytes(self):
+        from repo_integrity import PLACEHOLDER_MARK, REMOTE_WS_STUB
+
+        self.assertEqual(len(REMOTE_WS_STUB), 140)
+        self.assertIn(PLACEHOLDER_MARK.encode("utf-8"), REMOTE_WS_STUB)
+
+    def test_today_stub_would_fail_gate(self):
+        from repo_integrity import PLACEHOLDER_MARK, stub_issues
+
+        root = os.path.dirname(HERE)
+        issues = stub_issues(root)
+        self.assertTrue(
+            any("WebSocketServer.swift" in i and "bytes" in i for i in issues),
+            msg=issues,
+        )
+        self.assertTrue(any(PLACEHOLDER_MARK in i for i in issues), msg=issues)
+        self.assertTrue(any("500" in i or "lines" in i for i in issues), msg=issues)
+
+
+class Cycle7WiringLockTests(unittest.TestCase):
+    """Only asserts on the live 62 KB file. The 140-byte remote stub skips."""
+
+    def test_local_server_has_cycle7_inserts(self):
+        path = os.path.join(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Sources",
+            "MagicPadServer",
+            "WebSocketServer.swift",
+        )
+        raw = Path(path).read_text(encoding="utf-8")
+        if len(raw.encode("utf-8")) < 20_000:
+            self.skipTest("WebSocketServer.swift is the remote stub")
+        needles = (
+            "HTTPPostOrigin.allows",
+            "pendingCloseCode",
+            "sendCloseFrame(code:",
+            "HTMLEscape.escape",
+            "sourceLabel",
+            "ProtocolLimits.maxFrameBytes",
+            "431 Request Header Fields Too Large",
+            "426 Upgrade Required",
+            "CORSPolicy.accessControl",
+            "HTTPHeaderValue.first",
+            "import MagicPadCore",
+            "JSONText.encode",
+            "ProtocolLimits.proto",
+        )
+        missing = [n for n in needles if n not in raw]
+        self.assertFalse(missing, missing)
+        self.assertNotIn("Self.headerValue", raw)
+        self.assertNotIn("private static func headerValue", raw)
+        start = raw.index("private func parseFrame()")
+        end = raw.index("\n    func sendLatencyEcho")
+        parse = raw[start:end]
+        self.assertNotIn("closeInternal()", parse)
+        self.assertNotIn("sendCloseFrame(", parse)
+        self.assertGreaterEqual(
+            parse.count("pendingCloseCode = ProtocolLimits.closeMessageTooBig"),
+            2,
+            "Int.max 64-bit length and maxFrameBytes must both set close 1009",
+        )
+        root = os.path.dirname(HERE)
+        for rel in (
+            "MagicPadServer/Sources/MagicPadServer/LANDetector.swift",
+            "MagicPadServer/Sources/MagicPadServer/FileDropPasteboard.swift",
+        ):
+            text = Path(root, rel).read_text(encoding="utf-8")
+            self.assertIn("import MagicPadCore", text, rel)
+
+
+class Cycle8HTTPOriginSmokeLockTests(unittest.TestCase):
+    """Grep lock: smoke-all.sh must exercise POST /drop Origin 403.
+
+    Does not start a server. Owner-Mac smoke-all.sh is what actually hits
+    the wired beginHTTPPost path (Opus C7 M5).
+    """
+
+    def test_smoke_all_has_http_post_origin_403(self):
+        path = os.path.join(os.path.dirname(HERE), "scripts", "smoke-all.sh")
+        raw = Path(path).read_text(encoding="utf-8")
+        if "drop origin allowlist" not in raw:
+            self.skipTest(
+                "scripts/smoke-all.sh is the remote copy without the Cycle 8 Origin block"
+            )
+        self.assertIn("drop origin allowlist", raw)
+        self.assertIn("Origin: http://evil.example", raw)
+        self.assertIn("origin_rejected", raw)
+        self.assertIn("Origin: http://127.0.0.1:7878", raw)
+
+
+class Cycle17KeyAllowlistTests(unittest.TestCase):
+    """MP-12: PROTOCOL names every canonical key action."""
+
+    def test_protocol_lists_every_allowed_key(self):
+        root = os.path.dirname(HERE)
+        proto = Path(root, "docs", "PROTOCOL.md").read_text(encoding="utf-8")
+        self.assertIn("### `key` allowlist", proto)
+        with open(os.path.join(HERE, "fixtures", "key-aliases.json"), encoding="utf-8") as fh:
+            data = json.load(fh)
+        missing = [name for name in data["allowed"] if name not in proto]
+        self.assertFalse(missing, missing)
+
+
+class Cycle16MenuAndProtocolTests(unittest.TestCase):
+    """MP-12 voice_ack table; MP-20 menu diagnostics (no /health token)."""
+
+    def test_protocol_voice_ack_and_classify(self):
+        proto = Path(os.path.dirname(HERE), "docs", "PROTOCOL.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("### `voice_ack` reasons", proto)
+        self.assertIn("`rate_limited`", proto)
+        self.assertIn("`classify_ack`", proto)
+        self.assertIn("Never put a token in `/health`", proto)
+
+    def test_menu_shows_proto_htmlrev_clients(self):
+        path = Path(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Sources",
+            "MagicPadServer",
+            "MagicPadServer.swift",
+        )
+        raw = path.read_text(encoding="utf-8")
+        live = _swift_live(raw)
+        self.assertIn("import MagicPadCore", live)
+        self.assertIn("ProtocolLimits.proto", live)
+        self.assertIn("StaticFileLocator.htmlRev()", live)
+        self.assertIn("WebSocketServer.liveClientCount", live)
+        self.assertNotIn("pairing", live.lower())
