@@ -406,6 +406,11 @@ def cert_normalized_path(raw: str) -> str:
     return clean or "/"
 
 
+def is_documented_http_path(raw: str) -> bool:
+    """Cycle 37: only PROTOCOL HTTP routes. classify / pair are not routes."""
+    return cert_normalized_path(raw) in HTTP_ROUTES
+
+
 def cert_allows_get(raw: str) -> bool:
     return cert_normalized_path(raw) == CERT_PATH
 
