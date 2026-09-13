@@ -399,7 +399,9 @@ def pairing_allows(provided: str | None, configured: str | None = None) -> bool:
 
 
 def qr_url_is_safe(url: str, configured: str | None = None) -> bool:
-    """Cycle 21: QR / --print-only must never carry the pairing hatch."""
+    """Cycle 21/22: QR / --print-only must never carry the pairing hatch."""
+    from urllib.parse import parse_qsl, urlsplit
+
     if "pair=" in url.lower():
         return False
     if PAIRING_ENV in url:
@@ -409,5 +411,11 @@ def qr_url_is_safe(url: str, configured: str | None = None) -> bool:
         token = pairing_configured() or ""
     token = (token or "").strip()
     if token and token in url:
+        return False
+    parts = urlsplit(url)
+    for key, _val in parse_qsl(parts.query, keep_blank_values=True):
+        if key.lower() == PAIRING_HELLO_FIELD:
+            return False
+    if "pair=" in (parts.fragment or "").lower():
         return False
     return True
