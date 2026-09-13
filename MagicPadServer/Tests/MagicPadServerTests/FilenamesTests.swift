@@ -14,6 +14,7 @@ final class FilenamesTests: XCTestCase {
         XCTAssertEqual(Filenames.sanitize(#"..\..\etc\passwd"#), "passwd")
         XCTAssertEqual(Filenames.sanitize("..."), Filenames.fallback)
         XCTAssertEqual(Filenames.sanitize("é.txt"), "é.txt")
+        XCTAssertEqual(Filenames.sanitize("中́.txt"), "中́.txt")
     }
 
     func testClampsLengthKeepsSuffix() {

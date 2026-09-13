@@ -15,6 +15,11 @@
     {"id": "letter-octet", "ip": "10.a.0.0.1", "private": false, "note": "example-ip"},
     {"id": "trailing-dot", "ip": "10.0.0.1.", "private": false, "note": "example-ip"},
     {"id": "octet-999", "ip": "10.999.0.0", "private": false, "note": "example-ip"},
-    {"id": "octet-neg", "ip": "192.168.-1.0", "private": false, "note": "example-ip"}
+    {"id": "octet-neg", "ip": "192.168.-1.0", "private": false, "note": "example-ip"},
+    {"id": "leading-plus", "ip": "+10.0.0.1", "private": false, "note": "example-ip"},
+    {"id": "underscore-octet", "ip": "10.1_0.0.1", "private": false, "note": "example-ip"},
+    {"id": "arabic-indic", "ip": "١٠.0.0.1", "private": false, "note": "example-ip"},
+    {"id": "space-octet", "ip": "10. 0.0.1", "private": false, "note": "example-ip"},
+    {"id": "four-digit-octet", "ip": "10.0000.0.1", "private": false, "note": "example-ip"}
   ]
 }

@@ -21,5 +21,10 @@ final class LANAddressTests: XCTestCase {
         XCTAssertFalse(LANAddress.isPrivate("10.0.0.1.")) // example-ip
         XCTAssertFalse(LANAddress.isPrivate("10.999.0.0")) // example-ip
         XCTAssertFalse(LANAddress.isPrivate("192.168.-1.0")) // example-ip
+        XCTAssertFalse(LANAddress.isPrivate("+10.0.0.1")) // example-ip
+        XCTAssertFalse(LANAddress.isPrivate("10.1_0.0.1")) // example-ip
+        XCTAssertFalse(LANAddress.isPrivate("١٠.0.0.1")) // example-ip
+        XCTAssertFalse(LANAddress.isPrivate("10. 0.0.1")) // example-ip
+        XCTAssertFalse(LANAddress.isPrivate("10.0000.0.1")) // example-ip
     }
 }

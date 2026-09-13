@@ -14,7 +14,7 @@ final class HTTPHeaderValueTests: XCTestCase {
     }
 
     func testEmptyValueIsEmptyStringNotName() {
-        // Today's WebSocketServer.headerValue returns "Origin" here (split drops empty).
+        // Empty `Origin:` is "" (not the header name). Cycle 8 deleted headerValue.
         let blob = "GET / HTTP/1.1\r\nOrigin:\r\n\r\n"
         XCTAssertEqual(HTTPHeaderValue.first(blob, name: "origin"), "")
         XCTAssertTrue(OriginPolicy.isAllowed(origin: HTTPHeaderValue.first(blob, name: "origin"), lanIPs: []))

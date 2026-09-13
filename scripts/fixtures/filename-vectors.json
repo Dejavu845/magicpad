@@ -51,6 +51,12 @@
       "input": "é.txt",
       "out": "é.txt",
       "note": "APFS NFD; NFC before filter"
+    },
+    {
+      "id": "mn-no-precompose",
+      "input": "中́.txt",
+      "out": "中́.txt",
+      "note": "U+0301 has no NFC precomposed form with 中; Mn kept"
     }
   ]
 }
