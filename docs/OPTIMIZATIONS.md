@@ -128,6 +128,12 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 | MP-16 | P1 | YES | Debounced `syncLayoutSoon` (80 ms) on `resize` / `visualViewport.resize`. 44/48 px min-size guard; kb-open draft bar exempt. |
 | MP-19 | P2 | YES | `AppVersion.string` in `Version.swift`; `build_app.sh` greps it and uses `swift build --show-bin-path`. |
 
+## Cycle 27 — WS inbound type allowlist in Core
+
+| ID | Linux | What |
+|---|---|---|
+| MP-18 | YES | `WSType.parse` + `parse_ws_type`. Exact `voice`/`key`/`type`/`text`/`stt`/`hello`/`ping`/`classify`. Else ignore (no inject). Not HTTP `drop`. Local `handleJSONText` uses Core. Tests in `scripts/test_cycle27_wstype.py`. |
+
 ## Cycle 26 — binary frame parse in Core
 
 | ID | Linux | What |
@@ -227,7 +233,7 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 
 | ID | Next step |
 |---|---|
-| MP-18 | Cycle 23: `STTAction` in Core. Cycle 26: `BinaryFrame` in Core. Remaining: WS type / LAN shared fixtures |
+| MP-18 | Cycle 23: `STTAction`. Cycle 26: `BinaryFrame`. Cycle 27: `WSType`. Remaining: LAN shared fixtures |
 | MP-19 | Cycle 14: `Version.swift` + `swift build --show-bin-path`. |
 | MP-20 | Cycle 16: menu/About diagnostics (`proto` / htmlRev / clients). Cert dir button already existed. |
 | MP-21 | Playwright 4-viewport layout on Linux |
