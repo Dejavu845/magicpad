@@ -36,6 +36,7 @@ public enum PairingToken {
     public static func qrURLIsSafe(_ url: String, configured: String? = nil) -> Bool {
         let lowered = url.lowercased()
         if lowered.contains("pair=") { return false }
+        if lowered.contains("classify=") { return false }
         if url.contains(envName) { return false }
         let token = (configured ?? Self.configured() ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
