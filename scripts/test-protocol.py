@@ -34,6 +34,7 @@ from magicpad_proto import (  # noqa: E402
     hello_payload,
     html_escape,
     is_private_ipv4,
+    json_text_encode,
     mask_frame,
     origin_allowed,
     sanitize_filename,
@@ -99,6 +100,7 @@ class HelloTests(unittest.TestCase):
         self.assertEqual(h["type"], "hello")
         self.assertEqual(h["ua"], "smoke-ws")
         self.assertEqual(h["ts"], 42.5)
+        self.assertEqual(h["proto"], PROTO)
 
 
 class OriginPolicyTests(unittest.TestCase):
@@ -227,6 +229,8 @@ class Cycle7WiringLockTests(unittest.TestCase):
             "CORSPolicy.accessControl",
             "HTTPHeaderValue.first",
             "import MagicPadCore",
+            "JSONText.encode",
+            "ProtocolLimits.proto",
         )
         missing = [n for n in needles if n not in raw]
         self.assertFalse(missing, missing)
@@ -370,6 +374,18 @@ class CORSPolicyTests(unittest.TestCase):
         self.assertIn("needsVary: true", live)
         self.assertIn("OriginPolicy.isAllowed", live)
         self.assertIn("Echo is NOT the write control", text)
+
+
+class JSONTextTests(unittest.TestCase):
+    def test_sorted_compact_no_escaped_slash(self):
+        got = json_text_encode({"b": 1, "a": "http://127.0.0.1/x"})
+        self.assertEqual(got, '{"a":"http://127.0.0.1/x","b":1}')
+        self.assertNotIn("\\/", got)
+        text = Path(_swift_core("JSONText.swift")).read_text(encoding="utf-8")
+        live = _swift_live(text)
+        self.assertIn(".sortedKeys", live)
+        self.assertIn(".withoutEscapingSlashes", live)
+        self.assertIn("JSONSerialization.data", live)
 
 
 def _swift_quoted_forms(value: str) -> list[str]:
