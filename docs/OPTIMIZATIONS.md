@@ -124,7 +124,7 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 
 | ID | Pri | Linux | What landed |
 |---|---|---|---|
-| MP-15 | P1 | YES | Single visually-hidden `<h1>`, voice `<h2>`, tablist/tab/tabpanel, pad `role="application"`, `:focus-visible`, `#voiceStatus` sung, statusBar `aria-label`. `check-html.py` those checks are FAIL. `index.html` local-only (do not MCP-upload). |
+| MP-15 | P1 | YES | Single visually-hidden `<h1>`, voice `<h2>`, tablist/tab/tabpanel, pad `role="application"`, `:focus-visible`, `#voiceStatus` live, statusBar `aria-label`. `check-html.py` those checks are FAIL. `index.html` local-only (do not MCP-upload). |
 | MP-16 | P1 | YES | Debounced `syncLayoutSoon` (80 ms) on `resize` / `visualViewport.resize`. 44/48 px min-size guard; kb-open draft bar exempt. |
 | MP-19 | P2 | YES | `AppVersion.string` in `Version.swift`; `build_app.sh` greps it and uses `swift build --show-bin-path`. |
 
