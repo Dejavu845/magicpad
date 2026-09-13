@@ -128,6 +128,12 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 | MP-16 | P1 | YES | Debounced `syncLayoutSoon` (80 ms) on `resize` / `visualViewport.resize`. 44/48 px min-size guard; kb-open draft bar exempt. |
 | MP-19 | P2 | YES | `AppVersion.string` in `Version.swift`; `build_app.sh` greps it and uses `swift build --show-bin-path`. |
 
+## Cycle 22 — QR query-key `pair` lock
+
+| ID | Pri | Linux | What landed |
+|---|---|---|---|
+| pairing | P2 | YES | `qr_url_is_safe` / `qrURLIsSafe` also reject a query item named `pair` (blank or valued) and a `#pair=` fragment. Still no token in the QR. |
+
 ## Cycle 21 — QR never embeds pairing token
 
 | ID | Pri | Linux | What landed |
