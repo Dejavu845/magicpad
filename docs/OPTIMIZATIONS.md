@@ -128,6 +128,12 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 | MP-16 | P1 | YES | Debounced `syncLayoutSoon` (80 ms) on `resize` / `visualViewport.resize`. 44/48 px min-size guard; kb-open draft bar exempt. |
 | MP-19 | P2 | YES | `AppVersion.string` in `Version.swift`; `build_app.sh` greps it and uses `swift build --show-bin-path`. |
 
+## Cycle 17 — MP-12 key allowlist catalogue
+
+| ID | Pri | Linux | What landed |
+|---|---|---|---|
+| MP-12 | P1 | YES | PROTOCOL lists every canonical `key` action from `key-aliases.json`. Aliases stay in the fixture. |
+
 ## Cycle 16 — MP-12 voice_ack table + MP-20 menu diagnostics
 
 | ID | Pri | Linux | What landed |
@@ -155,12 +161,12 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 | ID | Linux | Next step |
 |---|---|---|
 | MP-11 | WRITE | Additive `proto: 1` on local `hello` / `hello_ack` / `/health` (Cycle 10). Remote stub unrestored. |
-| MP-12 | YES | Cycle 16: `voice_ack` / `classify` tables. Remaining JSON field catalogue still leftover. |
+| MP-12 | YES | Cycle 17: canonical `key` allowlist in PROTOCOL. Alias rows stay in the fixture. |
 | MP-13 | WRITE | Cycle 11: logs count/reason only (no `text.prefix`); `Logger` sets `0600` on `/tmp/magicpad-server.log`. EventInjector redact is local-only (63 KB). |
 | MP-14 | WRITE | Cycle 12: refuse `no_on_device_stt` when Whisper missing and Apple on-device unsupported. Remote SpeechSession unrestored until human push. |
 | MP-15 | YES | Cycle 14: tablist / h1 / `:focus-visible` / application. `index.html` unrestored on remote until human push. |
 | MP-16 | YES | Cycle 14: `syncLayoutSoon` + 44/48 px guard. Same `index.html` human push. |
-| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\\/`). Remote stub unrestored. |
+| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\/`). Remote stub unrestored. |
 
 ## Leftover P2
 

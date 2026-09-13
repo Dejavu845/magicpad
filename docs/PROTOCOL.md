@@ -28,6 +28,12 @@ Phases: 0 down · 1 move · 2 up · 3 cancel · 10 double · 11 right · 20 scro
 
 Unknown JSON `type` is ignored. Non-object / non-string `type` is ignored.
 
+### `key` allowlist (MP-12)
+
+Canonical `action` values. Aliases live in `scripts/fixtures/key-aliases.json` (and the Swift table). Empty → `empty_action`. Non-string → `bad_action`. Unknown non-empty → `unknown_action`. `count`/`repeat` outside 1…200 → `bad_count`.
+
+`backspace` `wordBackspace` `wordForwardDelete` `wordLeft` `wordRight` `selectLeft` `selectRight` `selectWordLeft` `selectWordRight` `selectUp` `selectDown` `selectHome` `selectEnd` `selectPageUp` `selectPageDown` `lineStart` `lineEnd` `selectLineStart` `selectLineEnd` `lineBackspace` `lineForwardDelete` `clearField` `selectAll` `left` `right` `up` `down` `enter` `unstick` `delete` `forwardDelete` `escape` `tab` `home` `end` `pageUp` `pageDown` `cut` `copy` `paste` `undo` `redo` `showDesktop` `missionControl` `launchpad` `notificationCenter` `lookUp` `openAccessibility`
+
 ### `voice_ack` reasons (MP-12)
 
 | `reason` | `ok` | Meaning |
@@ -82,7 +88,7 @@ Never hostname, home path, SSID, user, or payload text. `binaryPath` is `MagicPa
 ## Limits (`MagicPadCore.ProtocolLimits` / `scripts/magicpad_proto.py`)
 
 | Constant | Value | Where |
-|---|---|---|
+|---|---|
 | `maxFrameBytes` | 1 048 576 (1 MiB) | WS `parseFrame` — Cycle 7 wired locally (`pendingCloseCode` then close after unlock). Remote stub unrestored. |
 | `maxHeaderBytes` | 16 384 | pre-handshake header — Cycle 7 wired (431 if over cap without `\\r\\n\\r\\n`) |
 | `maxTypeChars` | 2 000 | `type` / `text` JSON |
