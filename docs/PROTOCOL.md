@@ -59,7 +59,7 @@ Canonical `action` values. Aliases live in `scripts/fixtures/key-aliases.json` (
 
 ### `classify` (telemetry only)
 
-Inbound `kind` / `reason` / `phase` (optional `net` `path` `ms` `scale`). Ack `classify_ack`. **Never injects.**
+Inbound `kind` / `reason` / `phase` (optional `net` `path` `ms` `scale`). Ack `classify_ack`. **Never injects.** Cycle 30: `Classify.parseKind` / `Classify.injects = false`. Local `handleClassify` uses Core; remote stub unrestored.
 
 A pairing token on QR / `hello` is optional and default-off. Never put a token in `/health`.
 
