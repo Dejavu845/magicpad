@@ -50,7 +50,7 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 | C4-H2 | P0 | YES | 503 must use `sourceLabel()`, not `indexHTMLCandidates()` paths (home-path rule) |
 | C4-H3 | P1 | YES | `test-protocol.py` reads `ProtocolLimits.swift` / `HTMLEscape.swift`; `lan-vectors.json` + `filename-vectors.json` |
 | C4-M1/M3 | P1 | WRITE | `LANAddress` / Python require four octets and `0...255`; `LANDetector.isPrivate` delegates |
-| C4-M2/N2 | P1 | WRITE | Unicode filenames; `\` is a separator; truncate keeps suffix; `FileDropPasteboard` calls `Filenames.sanitize` |
+| C4-M2/N2 | P1 | WRITE | Unicode filenames; `\\` is a separator; truncate keeps suffix; `FileDropPasteboard` calls `Filenames.sanitize` |
 | C4-M4/M6 | P1 | WRITE | `ProtocolLimits` type/voice caps read `KeyProtocol`; header says 1 MiB / 16 KiB are new |
 | C4-M5/M7/M8 | P1 | YES | PROTOCOL opcode/version caveats; CORS `needsVary`; CSP `style-src 'unsafe-inline'` |
 
@@ -114,6 +114,12 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 | MP-14 | P1 | WRITE | `SpeechSession.hasOnDeviceSTT`: Whisper `isReady`/`isCached` or Apple `supportsOnDeviceRecognition`. Else `no_on_device_stt` on live start and `POST /stt`. Live/file Apple paths never set `requiresOnDeviceRecognition = false`. |
 | MP-12 | P1 | YES | PROTOCOL `stt_final` reason table; SECURITY on-device-only paragraph. |
 
+## Cycle 13 — MP-23 JSON token bucket + max 8 clients
+
+| ID | Pri | Linux | What landed |
+|---|---|---|---|
+| MP-23 | P2 | WRITE | `JSONRateLimit` meters `type`/`text`/`voice` (40/s burst 80). `ProtocolLimits.maxClients = 8`. Local `accept` 503 `too_many_clients`; `handleJSONText` ack `rate_limited`. Binary / key / ping untouched. Remote stub unrestored. |
+
 ## Leftover P0
 
 None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
@@ -132,7 +138,7 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 | MP-14 | WRITE | Cycle 12: refuse `no_on_device_stt` when Whisper missing and Apple on-device unsupported. Remote SpeechSession unrestored until human push. |
 | MP-15 | YES | Web a11y: tablist, single `<h1>`, `:focus-visible`, pad `role="application"` |
 | MP-16 | YES | Debounced resize → layout tokens; 44/48 px touch targets |
-| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\/`). Remote stub unrestored. |
+| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\\/`). Remote stub unrestored. |
 
 ## Leftover P2
 
@@ -143,7 +149,7 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 | MP-20 | Menu diagnostics line (proto / htmlRev / clients); cert export |
 | MP-21 | Playwright 4-viewport layout on Linux |
 | MP-22 | `GET /cert` (public `.cer` only) + in-page Safari/Chrome steps |
-| MP-23 | Max 8 WS clients; JSON token bucket (never throttle binary 120 Hz) |
+| MP-23 | Cycle 13: Core + Python bucket; local server wire. Remote stub unrestored. |
 | MP-24 | Persist dictation draft in `localStorage` (clear on replace-mode ack) |
 
 ## Optional security (not scheduled)

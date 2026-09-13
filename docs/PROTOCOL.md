@@ -28,7 +28,7 @@ Phases: 0 down · 1 move · 2 up · 3 cancel · 10 double · 11 right · 20 scro
 
 Unknown JSON `type` is ignored. Non-object / non-string `type` is ignored.
 
-`maxVoiceChars` is 20000 while `maxTypeChars` is 2000 because voice lands on the pasteboard and is not `keySerial`-bound. Type injects keystrokes on the inject serial; a 10× clipboard clamp is defensible and currently unthrottled by the JSON token bucket (MP-23 leftover).
+`maxVoiceChars` is 20000 while `maxTypeChars` is 2000 because voice lands on the pasteboard and is not `keySerial`-bound. Type injects keystrokes on the inject serial. Cycle 13 meters `type` / `text` / `voice` with `JSONRateLimit` (40/s, burst 80). Over the burst the ack is `voice_ack{ok:false, reason:rate_limited}` and nothing is injected. `key` / `ping` / `hello` / `stt` / `classify` and every binary 13/18-byte frame are **not** metered.
 
 ## HTTP
 
@@ -70,6 +70,8 @@ Never hostname, home path, SSID, user, or payload text. `binaryPath` is `MagicPa
 | `proto` | 1 | additive on local `hello` / `hello_ack` / `/health` (MP-11). Remote stub unrestored. |
 | `requiredWebSocketVersion` | `13` | handshake 426 if missing — Cycle 7 wired locally |
 | allowed opcodes | 0x0 0x1 0x2 0x8 0x9 0xA | close 1003 on others — Cycle 7 wired locally. `0x0` is listed so fragmented browsers are not disconnected; reassembly is not implemented |
+| `maxClients` | 8 | Cycle 13 wired locally: 9th TCP accept is HTTP 503 `too_many_clients` (no WS upgrade). Remote stub unrestored. |
+| `jsonTokensPerSec` / `jsonBurst` | 40 / 80 | Cycle 13: `type`/`text`/`voice` only. Ack `rate_limited`. Never throttle binary 120 Hz. |
 
 Wiring notes: `docs/CYCLE4-WIRING.md`. HTTP Origin: `docs/CYCLE3-HTTP-ORIGIN.md`.
 
