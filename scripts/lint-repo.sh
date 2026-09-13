@@ -71,7 +71,7 @@ fail = False
 # Allow a line if it documents a fake address (marker required).
 EXAMPLE_MARK = "example-ip"
 RFC1918 = re.compile(
-    r"\b(10\.[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+|192\.168\.[0-9]+\.[0-9]+|172\.(1[6-9]|2[0-9]|3[01])\.[0-9]+\.[0-9]+)\b"
+    r"\b(10\.[0-9]+\.[0-9]+\.[0-9]+|192\.168\.[0-9]+\.[0-9]+|172\.(1[6-9]|2[0-9]|3[01])\.[0-9]+\.[0-9]+)\b"
 )
 USERS = re.compile(r"/Users/[A-Za-z][A-Za-z0-9._-]*")
 EXT = (".swift", ".html", ".py", ".sh", ".md", ".json")
@@ -194,7 +194,7 @@ print("LINT_PRODUCT_OK")
 PY
 PROD_RC=$?
 if [[ "$PROD_RC" -eq 0 ]]; then
-  pass "no forbidden product strings in client or server sources"
+  pass "no forbidden product strings in client/server sources"
 else
   fail_step "forbidden product strings in client/server sources"
 fi
@@ -203,12 +203,12 @@ fi
 # Floors: WebSocketServer.swift >=20kB/500 lines, index.html >=100kB,
 # smoke-all.sh >=20kB/500 lines, KeyProtocol.swift >=5kB.
 # Negative proof: python3 scripts/repo_integrity.py --prove-stub  (temp 140-byte stub must FAIL)
-if python3 scripts.repo_integrity.py; then
+if python3 scripts/repo_integrity.py; then
   pass "repo integrity floors"
 else
   fail_step "repo integrity floors"
 fi
-if python3 scripts.repo_integrity.py --prove-stub; then
+if python3 scripts/repo_integrity.py --prove-stub; then
   pass "repo integrity stub probe (140-byte WebSocketServer would FAIL)"
 else
   fail_step "repo integrity stub probe"
