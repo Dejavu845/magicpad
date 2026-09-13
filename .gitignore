@@ -18,8 +18,13 @@ build/
 # IDE / local agents
 .vscode/
 .idea/
-.cursor/
+.cursor/*
+!.cursor/environment.json
 .grok/
+*.p12
+*.pem
+*.key
+*.cer
 *.swp
 __pycache__/
 *.pyc
