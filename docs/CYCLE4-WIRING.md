@@ -1,9 +1,10 @@
 # Cycle 4 — wire ProtocolLimits, HTML escape, CORS echo
 
-`WebSocketServer.swift` stays unrestored on GitHub (62 KB; MCP truncates it).
-Helpers below are in `MagicPadCore`. Insert after a human `git push` of the
-local 1466-line file. Do **not** claim HTTP Origin is closed until
-`docs/CYCLE3-HTTP-ORIGIN.md` is also wired.
+Cycle 7 wired these inserts on the **local** `WebSocketServer.swift`.
+GitHub still has the 140-byte stub (MCP truncates the 62 KB file). A human
+`git push` is required before the remote server has any of this. This file
+remains the lock-safety spec: do **not** call `closeInternal()` under
+`parseFrame`'s lock.
 
 ## 1. Frame / header caps (`ProtocolLimits`) — MP-02
 
@@ -45,7 +46,9 @@ if !ProtocolLimits.allowedOpcodes.contains(opcode) {
 }
 ```
 
-After `parseFrame` returns and the lock is released, the caller:
+After the `while let frame = parseFrame()` loop (not inside the loop —
+`return nil` exits the `while`, so a body-only handler never runs) and
+the lock is released:
 
 ```swift
 if let code = pendingCloseCode {

@@ -19,7 +19,7 @@ Debug hatch (documented, default off): `MAGICPAD_ALLOW_ANY_ORIGIN=1`. Do not lea
 
 Phone page served from the live LAN IP still connects: that IP is in `LANDetector.allPrivateIPs` plus `LANDetector.ip`. HTTPS `:7879` uses the same host list. Hostname / mDNS (`*.local`) is **not** on the allowlist — only IP-literal (and loopback) access is supported today.
 
-**MP-01 does not close HTTP.** `POST /drop` and `POST /stt` in `beginHTTPPost` do not read `Origin`. `autoPaste` defaults to true, so a CORS-simple `fetch(..., {mode:'no-cors'})` from any origin can write the pasteboard and synthesize Cmd+V. Changing `Access-Control-Allow-Origin` (leftover MP-04 as originally written) only affects who may *read* replies; it does not stop the write. Cycle 3 adds `HTTPPostOrigin.allows` in Core but does not yet call it from `beginHTTPPost`. Until that insert (see `docs/CYCLE3-HTTP-ORIGIN.md`), do not describe CSWSH as closed on the HTTP door.
+**MP-01 is WebSocket-only.** Cycle 7 also calls `HTTPPostOrigin.allows` in `beginHTTPPost` for `POST /drop` and `POST /stt` (same missing/empty Origin carve-out as the handshake). A CORS-simple `no-cors` POST from a disallowed Origin is now 403 before pasteboard/STT. CORS echo (`CORSPolicy.accessControl`) still only affects who may *read* replies. The remote draft PR's 140-byte stub does **not** include this insert until a human `git push`.
 
 ## What `/health` may expose
 

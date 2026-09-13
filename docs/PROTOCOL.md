@@ -43,13 +43,13 @@ Unknown JSON `type` is ignored. Non-object / non-string `type` is ignored.
 
 | Constant | Value | Where |
 |---|---|---|
-| `maxFrameBytes` | 1 048 576 (1 MiB) | WS `parseFrame` — Cycle 4 helper, **not wired** until `WebSocketServer.swift` is restored |
-| `maxHeaderBytes` | 16 384 | pre-handshake header — same |
+| `maxFrameBytes` | 1 048 576 (1 MiB) | WS `parseFrame` — Cycle 7 wired locally (`pendingCloseCode` then close after unlock). Remote stub unrestored. |
+| `maxHeaderBytes` | 16 384 | pre-handshake header — Cycle 7 wired (431 if over cap without `\\r\\n\\r\\n`) |
 | `maxTypeChars` | 2 000 | `type` / `text` JSON |
 | `maxVoiceChars` | 20 000 | `voice` JSON (pasteboard) |
 | `proto` | 1 | additive on `hello` / `hello_ack` / `/health` (MP-11 leftover) |
-| `requiredWebSocketVersion` | `13` | handshake 426 if missing — **not wired**; server does not read `Sec-WebSocket-Version` today |
-| allowed opcodes | 0x0 0x1 0x2 0x8 0x9 0xA | close 1003 on others — **not wired**. `0x0` is listed so a later insert does not disconnect fragmented browsers; reassembly is not implemented |
+| `requiredWebSocketVersion` | `13` | handshake 426 if missing — Cycle 7 wired locally |
+| allowed opcodes | 0x0 0x1 0x2 0x8 0x9 0xA | close 1003 on others — Cycle 7 wired locally. `0x0` is listed so fragmented browsers are not disconnected; reassembly is not implemented |
 
 Wiring notes: `docs/CYCLE4-WIRING.md`. HTTP Origin: `docs/CYCLE3-HTTP-ORIGIN.md`.
 

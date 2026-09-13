@@ -1,8 +1,8 @@
 # Cycle 3 — Origin check on `POST /drop` and `POST /stt`
 
-Cycle 2 does **not** rewrite `WebSocketServer.swift` (62 KB; MCP-upload truncates it).
-A human `git push` from the local tree (`HEAD` at Cycle 1: `898e5f5` plus Cycle 2
-integrity/docs) is the source of truth for that file. Wire the check then.
+Cycle 7 wired `HTTPPostOrigin.allows` in local `beginHTTPPost`. GitHub still
+has the 140-byte stub (MCP-upload truncates the 62 KB file). A human `git push`
+is required before the remote server has this check.
 
 ## Why CORS echo is not the fix
 

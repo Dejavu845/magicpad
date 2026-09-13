@@ -54,12 +54,28 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 | C4-M4/M6 | P1 | WRITE | `ProtocolLimits` type/voice caps read `KeyProtocol`; header says 1 MiB / 16 KiB are new |
 | C4-M5/M7/M8 | P1 | YES | PROTOCOL opcode/version caveats; CORS `needsVary`; CSP `style-src 'unsafe-inline'` |
 
+## Cycle 7 — wired on the local 62 KB server (remote stub unrestored)
+
+| ID | Pri | Linux | What landed |
+|---|---|---|---|
+| MP-02 wire | P0 | WRITE | `parseFrame` sets `pendingCloseCode` and returns; close + `sendCloseFrame(code:)` after unlock. Header 431. Version 426. `0x0` allowed, no reassembly. |
+| MP-04 write | P0 | WRITE | `HTTPPostOrigin.allows` in `beginHTTPPost` before pasteboard/STT. Handshake Origin/key use `HTTPHeaderValue.first`. |
+| C4-H2 wire | P0 | WRITE | 503 lists `sourceLabel()`, not filesystem paths. `fallbackHTML` uses `HTMLEscape.escape`. |
+| MP-04 echo | P0 | WRITE | `CORSPolicy.accessControl` on HTTP replies (`*` when Origin missing). |
+| C6-B1 | P0 | WRITE | `import MagicPadCore` on `LANDetector` / `FileDropPasteboard` (Swift file-scoped imports). |
+| C6-M1 | P0 | YES | Wiring doc: handle `pendingCloseCode` **after** the `while let parseFrame` loop. |
+| C6-M2 | P1 | YES | Fixture rows must share a live Swift assert line with the expected True/False or output. |
+| C6-M3 | P1 | YES | Python `is_private_ipv4` rejects non-ASCII / non-digit octets (`int("1_0")` ≠ Swift `Int`). |
+
+Remote PR still has the 140-byte stub. Human `git push` required.
+
 ## Leftover P0
+
+None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 
 | ID | Linux | Next step |
 |---|---|---|
-| MP-02 wire | WRITE | After restoring `WebSocketServer.swift`, insert `ProtocolLimits` in `parseFrame` / header / version (`docs/CYCLE4-WIRING.md`) |
-| MP-04 write | WRITE | **`HTTPPostOrigin.allows` in `beginHTTPPost` before pasteboard/STT** (`docs/CYCLE3-HTTP-ORIGIN.md`). CORS echo is *not* sufficient. `/health` wildcard CORS is a recon oracle (`ip`/`ips`/`ifaces`). |
+| MP-04 health | WRITE | `/health` still advertises `ip`/`ips`/`ifaces` (recon oracle). Pairing token stays optional/off. |
 
 ## Leftover P1
 

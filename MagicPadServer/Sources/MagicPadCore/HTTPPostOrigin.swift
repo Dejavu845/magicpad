@@ -1,7 +1,7 @@
 // HTTPPostOrigin.swift
-// Core helper for the HTTP POST Origin check. beginHTTPPost does not call
-// this yet — POST /drop and POST /stt still have no Origin check. Insertion
-// is documented in docs/CYCLE3-HTTP-ORIGIN.md. CORS * is not this check.
+// Core helper for the HTTP POST Origin check. Cycle 7 wires
+// `HTTPPostOrigin.allows` in `beginHTTPPost` (docs/CYCLE3-HTTP-ORIGIN.md).
+// CORS echo is not this check.
 
 import Foundation
 
