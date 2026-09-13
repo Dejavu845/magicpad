@@ -128,6 +128,12 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 | MP-16 | P1 | YES | Debounced `syncLayoutSoon` (80 ms) on `resize` / `visualViewport.resize`. 44/48 px min-size guard; kb-open draft bar exempt. |
 | MP-19 | P2 | YES | `AppVersion.string` in `Version.swift`; `build_app.sh` greps it and uses `swift build --show-bin-path`. |
 
+## Cycle 30 — classify never injects
+
+| ID | Linux | What |
+|---|---|---|
+| MP-12 | YES | `Classify.injects = false` + `parse_classify_kind`. Local `handleClassify` uses Core; no EventInjector. Tests in `scripts/test_cycle30_classify.py`. |
+
 ## Cycle 29 — pairing hatch never a /health key
 
 | ID | Linux | What |
@@ -234,12 +240,12 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 | ID | Linux | Next step |
 |---|---|---|
 | MP-11 | WRITE | Additive `proto: 1` on local `hello` / `hello_ack` / `/health` (Cycle 10). Remote stub unrestored. |
-| MP-12 | YES | Cycle 19: `stt` JSON fields. Cycle 20 pairing hatch. Cycle 21–22: QR never embeds token. Cycle 23–25: STT action / lang / onDevice in Core. |
+| MP-12 | YES | Cycle 19: `stt` JSON fields. Cycle 20 pairing hatch. Cycle 21–22: QR never embeds token. Cycle 23–25: STT action / lang / onDevice in Core. Cycle 30: classify never injects. |
 | MP-13 | WRITE | Cycle 11: logs count/reason only (no `text.prefix`); `Logger` sets `0600` on `/tmp/magicpad-server.log`. EventInjector redact is local-only (63 KB). |
 | MP-14 | WRITE | Cycle 12: refuse `no_on_device_stt` when Whisper missing and Apple on-device unsupported. Remote SpeechSession unrestored until human push. |
 | MP-15 | YES | Cycle 14: tablist / h1 / `:focus-visible` / application. `index.html` unrestored on remote until human push. |
 | MP-16 | YES | Cycle 14: `syncLayoutSoon` + 44/48 px guard. Same `index.html` human push. |
-| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\/`). Remote stub unrestored. |
+| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\\/`). Remote stub unrestored. |
 
 ## Leftover P2
 
