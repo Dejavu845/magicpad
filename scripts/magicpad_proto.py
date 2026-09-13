@@ -206,7 +206,44 @@ REQUIRED_WS_VERSION = "13"
 ALLOWED_OPCODES = frozenset({0x0, 0x1, 0x2, 0x8, 0x9, 0xA})
 CLOSE_MESSAGE_TOO_BIG = 1009
 CLOSE_UNSUPPORTED_DATA = 1003
+MAX_CLIENTS = 8
+JSON_TOKENS_PER_SEC = 40
+JSON_BURST = 80
+METERED_JSON_TYPES = frozenset({"type", "text", "voice"})
 ERROR_PAGE_CSP = "default-src 'none'; style-src 'unsafe-inline'"
+
+
+class JSONRateLimit:
+    """Mirror of MagicPadCore.JSONRateLimit. Meters type/text/voice only."""
+
+    def __init__(
+        self,
+        tokens_per_sec: float = JSON_TOKENS_PER_SEC,
+        burst: float = JSON_BURST,
+    ) -> None:
+        self.tokens_per_sec = tokens_per_sec
+        self.burst = burst
+        self.tokens = float(burst)
+        self.last_refill = 0.0
+
+    def allow(self, typ: str, now: float | None = None) -> bool:
+        if typ not in METERED_JSON_TYPES:
+            return True
+        if now is None:
+            now = 0.0
+        if self.last_refill == 0.0:
+            self.last_refill = now
+        dt = max(0.0, now - self.last_refill)
+        self.tokens = min(self.burst, self.tokens + dt * self.tokens_per_sec)
+        self.last_refill = now
+        if self.tokens < 1.0:
+            return False
+        self.tokens -= 1.0
+        return True
+
+    def reset(self, now: float = 0.0) -> None:
+        self.tokens = float(self.burst)
+        self.last_refill = now
 
 
 def json_text_encode(obj: dict) -> str | None:
