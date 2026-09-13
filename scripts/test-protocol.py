@@ -230,11 +230,18 @@ class Cycle7WiringLockTests(unittest.TestCase):
         )
         missing = [n for n in needles if n not in raw]
         self.assertFalse(missing, missing)
+        self.assertNotIn("Self.headerValue", raw)
+        self.assertNotIn("private static func headerValue", raw)
         start = raw.index("private func parseFrame()")
         end = raw.index("\n    func sendLatencyEcho")
         parse = raw[start:end]
         self.assertNotIn("closeInternal()", parse)
         self.assertNotIn("sendCloseFrame(", parse)
+        self.assertGreaterEqual(
+            parse.count("pendingCloseCode = ProtocolLimits.closeMessageTooBig"),
+            2,
+            "Int.max 64-bit length and maxFrameBytes must both set close 1009",
+        )
         root = os.path.dirname(HERE)
         for rel in (
             "MagicPadServer/Sources/MagicPadServer/LANDetector.swift",
@@ -242,6 +249,22 @@ class Cycle7WiringLockTests(unittest.TestCase):
         ):
             text = Path(root, rel).read_text(encoding="utf-8")
             self.assertIn("import MagicPadCore", text, rel)
+
+
+class Cycle8HTTPOriginSmokeLockTests(unittest.TestCase):
+    """Grep lock: smoke-all.sh must exercise POST /drop Origin 403.
+
+    Does not start a server. Owner-Mac smoke-all.sh is what actually hits
+    the wired beginHTTPPost path (Opus C7 M5).
+    """
+
+    def test_smoke_all_has_http_post_origin_403(self):
+        path = os.path.join(os.path.dirname(HERE), "scripts", "smoke-all.sh")
+        raw = Path(path).read_text(encoding="utf-8")
+        self.assertIn("drop origin allowlist", raw)
+        self.assertIn("Origin: http://evil.example", raw)
+        self.assertIn("origin_rejected", raw)
+        self.assertIn("Origin: http://127.0.0.1:7878", raw)
 
 
 def _swift_core(name: str) -> str:
@@ -306,6 +329,26 @@ class CORSPolicyTests(unittest.TestCase):
         self.assertIsNone(cors_allow_origin("http://evil.example", lan))
 
 
+def _swift_quoted_forms(value: str) -> list[str]:
+    """Swift literals that can carry `value` on a test line."""
+    forms = [json.dumps(value, ensure_ascii=False)]
+    if "\\" in value:
+        forms.append('#"' + value + '"#')
+    return forms
+
+
+def _line_has_quoted(line: str, value: str) -> bool:
+    return any(form in line for form in _swift_quoted_forms(value))
+
+
+def _remainder_after_quoted(line: str, value: str) -> str:
+    for form in _swift_quoted_forms(value):
+        idx = line.find(form)
+        if idx != -1:
+            return line[:idx] + line[idx + len(form) :]
+    return line
+
+
 class LANAddressTests(unittest.TestCase):
     def test_shared_vectors(self):
         path = os.path.join(HERE, "fixtures", "lan-vectors.json")
@@ -323,15 +366,21 @@ class LANAddressTests(unittest.TestCase):
             got = is_private_ipv4(row["ip"])
             self.assertEqual(got, row["private"], row["id"])
             want_fn = "XCTAssertTrue" if row["private"] else "XCTAssertFalse"
-            hit = False
+            hits = []
             for line in swift.splitlines():
                 if line.lstrip().startswith("//"):
                     continue
-                if row["ip"] in line and want_fn in line:
-                    hit = True
-                    break
-            if not hit:
-                missing.append(f"{row['id']}: {row['ip']!r} needs {want_fn} on the same live line")
+                if _line_has_quoted(line, row["ip"]):
+                    hits.append(line)
+            if not hits:
+                missing.append(
+                    f"{row['id']}: quoted {row['ip']!r} needs {want_fn} on a live line"
+                )
+                continue
+            if any(want_fn not in line for line in hits):
+                missing.append(
+                    f"{row['id']}: quoted {row['ip']!r} has a live line without {want_fn}"
+                )
         self.assertFalse(missing, missing)
 
 
@@ -354,16 +403,20 @@ class FilenamesTests(unittest.TestCase):
             for line in swift.splitlines():
                 if line.lstrip().startswith("//"):
                     continue
-                out_ok = row["out"] in line or (
-                    row["out"] == "magicpad-file.bin" and "Filenames.fallback" in line
+                if not _line_has_quoted(line, row["input"]):
+                    continue
+                rest = _remainder_after_quoted(line, row["input"])
+                out_ok = _line_has_quoted(rest, row["out"]) or (
+                    row["out"] == "magicpad-file.bin" and "Filenames.fallback" in rest
                 )
-                if row["input"] in line and out_ok:
+                if out_ok:
                     hit = True
                     break
             if not hit:
                 missing.append(
-                    f"{row['id']}: {row['input']!r} → {row['out']!r} "
-                    "must share a live Swift assert line"
+                    f"{row['id']}: quoted {row['input']!r} → {row['out']!r} "
+                    "must share a live Swift assert line with the expected "
+                    "value outside the input literal"
                 )
         self.assertFalse(missing, missing)
 
