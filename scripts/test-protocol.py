@@ -112,3 +112,70 @@ class LatencyEchoTests(unittest.TestCase):
         d = decode_latency_echo(buf)
         self.assertEqual(d["seq"], seq)
         self.assertEqual(d["t_ms"], t_ms)
+
+
+class HelloTests(unittest.TestCase):
+    def test_shape(self):
+        h = hello_payload("smoke-ws", 42.5)
+        self.assertEqual(h["type"], "hello")
+        self.assertEqual(h["ua"], "smoke-ws")
+        self.assertEqual(h["ts"], 42.5)
+        self.assertEqual(h["proto"], PROTO)
+
+
+class OriginPolicyTests(unittest.TestCase):
+    def test_shared_vectors(self):
+        path = os.path.join(HERE, "fixtures", "origin-vectors.json")
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+        default_lan = data["lan"]
+        for row in data["vectors"]:
+            lan = row["lan"] if "lan" in row else default_lan
+            got = origin_allowed(row["origin"], lan)
+            self.assertEqual(
+                got,
+                row["allow"],
+                f"{row['id']}: origin={row['origin']!r} lan={lan!r} got {got}",
+            )
+
+    def test_every_fixture_origin_appears_in_swift(self):
+        """The Swift table is hand-copied. Linux CI can still catch a missing vector."""
+        path = os.path.join(HERE, "fixtures", "origin-vectors.json")
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+        swift_path = os.path.join(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Tests",
+            "MagicPadServerTests",
+            "OriginPolicyTests.swift",
+        )
+        with open(swift_path, encoding="utf-8") as fh:
+            swift = fh.read()
+        missing = []
+        for row in data["vectors"]:
+            origin = row["origin"]
+            if origin is None:
+                continue
+            if origin not in swift:
+                missing.append(f"{row['id']}: {origin!r}")
+        self.assertFalse(
+            missing,
+            "origin-vectors.json rows missing from OriginPolicyTests.swift "
+            "(add these strings to the hand-copied Swift table):\n  "
+            + "\n  ".join(missing),
+        )
+
+
+class HeaderValueTests(unittest.TestCase):
+    def test_missing_is_none(self):
+        self.assertIsNone(header_value("GET / HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n", "origin"))
+
+    def test_present(self):
+        blob = "GET / HTTP/1.1\r\nOrigin: http://evil.example\r\n\r\n"
+        self.assertEqual(header_value(blob, "origin"), "http://evil.example")
+
+    def test_empty_value_is_empty_string(self):
+        blob = "GET / HTTP/1.1\r\nOrigin:\r\n\r\n"
+        self.assertEqual(header_value(blob, "origin"), "")
+        self.assertTrue(origin_allowed(header_value(blob, "origin"), []))
