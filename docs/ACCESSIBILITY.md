@@ -47,3 +47,13 @@ tail -f /tmp/magicpad-server.log | grep -E '辅助功能|rightClick|voice: simul
 ```
 
 成功右键应见类似 `rightClick(ctrl+left)`；成功粘贴见 `voice: simulated Cmd+V`。
+
+## Web page (MP-15)
+
+The phone page is a single HTML file. Cycle 14:
+
+- One visually-hidden `<h1>MagicPad</h1>` plus `<h2>输入</h2>` on the voice panel. The `<noscript>` heading stays inside `<noscript>`.
+- Mode chrome is a `tablist` / `tab` / `tabpanel`. The pad is `role="application"`.
+- `:focus-visible` outline is `#7fd1ff`.
+- `user-scalable=no` is a documented exception to WCAG 1.4.4: pinch on the pad is a gesture, not page zoom. Voice textarea uses `font-size: clamp(16px, …)` so iOS does not auto-zoom on focus.
+- `#voiceStatus` is `aria-live="polite"`. `#statusBar` has Enter/Space and `aria-label`.
