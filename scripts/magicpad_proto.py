@@ -421,6 +421,19 @@ STT_LANGS = frozenset({"zh-CN", "en-US", "ja-JP"})
 STT_LANG_FALLBACK = "zh-CN"
 
 
+WS_TYPES = frozenset(
+    {"voice", "key", "type", "text", "stt", "hello", "ping", "classify"}
+)
+
+
+def parse_ws_type(raw: str | None) -> str | None:
+    """Cycle 27: Core WSType.parse mirror. Exact type string; else None."""
+    key = (raw or "").strip()
+    if key in WS_TYPES:
+        return key
+    return None
+
+
 def parse_stt_on_device(value: object | None) -> bool:
     """Cycle 25: Core STTOnDevice.parse mirror. JSON bool only; else true."""
     if isinstance(value, bool):
