@@ -128,8 +128,7 @@ Inbound: `type=stt`, `action` ∈ `start`/`begin`/`on` · `stop`/`end`/`off` · 
 
 Wiring notes: `docs/CYCLE4-WIRING.md`. HTTP Origin: `docs/CYCLE3-HTTP-ORIGIN.md`.
 
-CORS: curl without `
-Origin` still sees `Access-Control-Allow-Origin: *` (smoke-all). `CORSPolicy.accessControl` echoes an allowlisted Origin (`needsVary == true`) and omits ACAO for evil Origins. Echo-allowlist does **not** stop a CORS-simple `no-cors` POST write — that is `HTTPPostOrigin.allows` in local `beginHTTPPost`.
+CORS: curl without `Origin` still sees `Access-Control-Allow-Origin: *` (smoke-all). `CORSPolicy.accessControl` echoes an allowlisted Origin (`needsVary == true`) and omits ACAO for evil Origins. Echo-allowlist does **not** stop a CORS-simple `no-cors` POST write — that is `HTTPPostOrigin.allows` in local `beginHTTPPost`.
 
 ## htmlRev
 
