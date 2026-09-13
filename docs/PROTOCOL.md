@@ -1,6 +1,6 @@
 # MagicPad protocol (seed)
 
-Canonical layout also in `docs/architecture.md`. This file is the field/limit catalogue; Cycle 1 ships the voice clamp and JSON types used by smokes. Additive `proto` versioning is leftover (MP-11).
+Canonical layout also in `docs/architecture.md`. This file is the field/limit catalogue; Cycle 1 ships the voice clamp and JSON types used by smokes. Additive `proto: 1` is on local `hello` / `hello_ack` / `/health` (MP-11).
 
 **Do not change 13B/18B layout without tests, docs, and owner sign-off.**
 
@@ -18,7 +18,7 @@ Phases: 0 down · 1 move · 2 up · 3 cancel · 10 double · 11 right · 20 scro
 
 | `type` | Inbound fields | Ack |
 |---|---|---|
-| `hello` | `ua`, `ts` | `hello_ack{ok, ts, htmlRev, ax, clients}` |
+| `hello` | `ua`, `ts`, optional `proto` | `hello_ack{ok, ts, htmlRev, ax, clients, proto}` |
 | `ping` | `ts` | `pong{ts, serverTs}` |
 | `key` | `action` (allowlist + aliases), `count`/`repeat` 1…200 | `voice_ack{ok, reason}` — `empty_action` `bad_action` `bad_count` `unknown_action` or canonical action |
 | `type` / `text` | `text` string, max **2000** graphemes | `empty_type` `bad_type` `type` `type_truncated` |
@@ -35,9 +35,9 @@ Unknown JSON `type` is ignored. Non-object / non-string `type` is ignored.
 | Route | Notes |
 |---|---|
 | `GET /` | Phone page (bundled `index.html`) |
-| `GET /health` | Unauthenticated JSON; no-home-path / no-hostname promise is **this route only** — see `docs/SECURITY.md` |
-| `POST /stt` | ≤ 10 MB audio. **No Origin check yet** (Cycle 3: `docs/CYCLE3-HTTP-ORIGIN.md`) |
-| `POST /drop` | ≤ 50 MB file → pasteboard + optional Cmd+V (`autoPaste` default true). **No Origin check yet** — MP-01 did not close this door |
+| `GET /health` | Unauthenticated JSON via `JSONText.encode` (local). Keys include `proto`. `ip`/`ips`/`ifaces` stay for LAN debug; CORS echo is the recon control. No-home-path / no-hostname promise is **this route only** — see `docs/SECURITY.md` |
+| `POST /stt` | ≤ 10 MB audio. Cycle 7 wired `HTTPPostOrigin.allows` locally (403 `origin_rejected`). Remote stub unrestored. |
+| `POST /drop` | ≤ 50 MB file → pasteboard + optional Cmd+V (`autoPaste` default true). Same local Origin check as `/stt`. |
 
 ## Limits (`MagicPadCore.ProtocolLimits` / `scripts/magicpad_proto.py`)
 
@@ -47,13 +47,13 @@ Unknown JSON `type` is ignored. Non-object / non-string `type` is ignored.
 | `maxHeaderBytes` | 16 384 | pre-handshake header — Cycle 7 wired (431 if over cap without `\\r\\n\\r\\n`) |
 | `maxTypeChars` | 2 000 | `type` / `text` JSON |
 | `maxVoiceChars` | 20 000 | `voice` JSON (pasteboard) |
-| `proto` | 1 | additive on `hello` / `hello_ack` / `/health` (MP-11 leftover) |
+| `proto` | 1 | additive on local `hello` / `hello_ack` / `/health` (MP-11). Remote stub unrestored. |
 | `requiredWebSocketVersion` | `13` | handshake 426 if missing — Cycle 7 wired locally |
 | allowed opcodes | 0x0 0x1 0x2 0x8 0x9 0xA | close 1003 on others — Cycle 7 wired locally. `0x0` is listed so fragmented browsers are not disconnected; reassembly is not implemented |
 
 Wiring notes: `docs/CYCLE4-WIRING.md`. HTTP Origin: `docs/CYCLE3-HTTP-ORIGIN.md`.
 
-CORS: curl without `Origin` still sees `Access-Control-Allow-Origin: *` (smoke-all). `CORSPolicy.accessControl` echoes an allowlisted Origin (`needsVary == true`) and omits ACAO for evil Origins. Echo-allowlist does **not** stop a CORS-simple `no-cors` POST write. The HTTP Origin check is leftover Cycle 3, not a CORS header change.
+CORS: curl without `Origin` still sees `Access-Control-Allow-Origin: *` (smoke-all). `CORSPolicy.accessControl` echoes an allowlisted Origin (`needsVary == true`) and omits ACAO for evil Origins. Echo-allowlist does **not** stop a CORS-simple `no-cors` POST write — that is `HTTPPostOrigin.allows` in local `beginHTTPPost`.
 
 ## htmlRev
 
