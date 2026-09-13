@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# lint-repo.sh — Linux-safe static gates (syntax, forbidden files, baked IPs, product strings)
+# lint-repo.sh — Linux-safe static gates (syntax, forbidden files, baked IPs, product strings, integrity floors)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -190,6 +190,21 @@ if [[ "$PROD_RC" -eq 0 ]]; then
   pass "no forbidden product strings in client/server sources"
 else
   fail_step "forbidden product strings in client/server sources"
+fi
+
+# --- 8. repo integrity (min bytes/lines; no MCP "Placeholder replaced by" stubs) ---
+# Floors: WebSocketServer.swift >=20kB/500 lines, index.html >=100kB,
+# smoke-all.sh >=20kB/500 lines, KeyProtocol.swift >=5kB.
+# Negative proof: python3 scripts/repo_integrity.py --prove-stub  (temp 140-byte stub must FAIL)
+if python3 scripts/repo_integrity.py; then
+  pass "repo integrity floors"
+else
+  fail_step "repo integrity floors"
+fi
+if python3 scripts/repo_integrity.py --prove-stub; then
+  pass "repo integrity stub probe (140-byte WebSocketServer would FAIL)"
+else
+  fail_step "repo integrity stub probe"
 fi
 
 if [[ "$FAIL" -ne 0 ]]; then
