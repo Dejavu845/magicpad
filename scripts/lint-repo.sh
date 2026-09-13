@@ -208,7 +208,7 @@ if python3 scripts/repo_integrity.py; then
 else
   fail_step "repo integrity floors"
 fi
-if python3 scripts.repo_integrity.py --prove-stub; then
+if python3 scripts/repo_integrity.py --prove-stub; then
   pass "repo integrity stub probe (140-byte WebSocketServer would FAIL)"
 else
   fail_step "repo integrity stub probe"
