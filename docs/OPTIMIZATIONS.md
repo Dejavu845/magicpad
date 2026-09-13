@@ -245,7 +245,7 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 | MP-14 | WRITE | Cycle 12: refuse `no_on_device_stt` when Whisper missing and Apple on-device unsupported. Remote SpeechSession unrestored until human push. |
 | MP-15 | YES | Cycle 14: tablist / h1 / `:focus-visible` / application. `index.html` unrestored on remote until human push. |
 | MP-16 | YES | Cycle 14: `syncLayoutSoon` + 44/48 px guard. Same `index.html` human push. |
-| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\\/`). Remote stub unrestored. |
+| MP-17 | WRITE | Local `/health` uses `JSONText.encode` (sorted keys, no `\/`). Remote stub unrestored. |
 
 ## Leftover P2
 
