@@ -138,25 +138,134 @@ def header_value(blob: str, name: str) -> str | None:
     return None
 
 
+def origin_parse(origin: str) -> tuple[str, str] | None:
+    """Mirror of MagicPadCore.OriginPolicy.parse. None → reject."""
+    trimmed = origin.strip()
+    if not trimmed or trimmed.lower() == "null":
+        return None
+    while trimmed.endswith("/"):
+        trimmed = trimmed[:-1]
+    parsed = urlparse(trimmed)
+    scheme = (parsed.scheme or "").lower()
+    if scheme not in ("http", "https", "ws", "wss"):
+        return None
+    # urlparse.query / .fragment are always str ('' when absent). Swift
+    # URLComponents returns nil when absent and "" when present-but-empty
+    # (http://host/# and http://host?). Reject on the raw characters so
+    # both sides match. username/password are None when absent and "" when
+    # present-but-empty (http://@host) — test `is not None`, not truthiness.
+    if "?" in trimmed or "#" in trimmed:
+        return None
+    if parsed.username is not None or parsed.password is not None:
+        return None
+    path = parsed.path or ""
+    if path not in ("", "/"):
+        return None
+    netloc = parsed.netloc or ""
+    if "@" in netloc:
+        netloc = netloc.rsplit("@", 1)[-1]
+    if "%" in netloc:
+        return None
+    host = (parsed.hostname or "").lower()
+    if host.startswith("[") and host.endswith("]"):
+        host = host[1:-1]
+    if not host:
+        return None
+    return scheme, host
+
+
 def origin_allowed(origin: str | None, lan_ips: list[str] | None = None) -> bool:
     """Mirror of MagicPadCore.OriginPolicy.isAllowed (MP-01)."""
-    if origin is None or origin == "":
+    if origin is None:
         return True
     trimmed = origin.strip()
     if not trimmed:
         return True
     if trimmed.lower() == "null":
         return False
-    while trimmed.endswith("/"):
-        trimmed = trimmed[:-1]
-    parsed = urlparse(trimmed)
-    scheme = (parsed.scheme or "").lower()
-    if scheme not in ("http", "https", "ws", "wss"):
+    parsed = origin_parse(trimmed)
+    if parsed is None:
         return False
-    host = (parsed.hostname or "").lower()
-    if host.startswith("[") and host.endswith("]"):
-        host = host[1:-1]
+    _scheme, host = parsed
     allowed = {"127.0.0.1", "localhost", "::1"}
     for ip in lan_ips or []:
-        allowed.add(str(ip).strip().lower().strip("[]"))
+        h = str(ip).strip().lower().strip("[]")
+        if h:
+            allowed.add(h)
     return host in allowed
+
+
+# Mirror of MagicPadCore.ProtocolLimits / HTMLEscape / CORSPolicy / LANAddress / Filenames.
+MAX_FRAME_BYTES = 1_048_576
+MAX_HEADER_BYTES = 16_384
+MAX_TYPE_CHARS = 2000
+MAX_VOICE_CHARS = 20_000
+PROTO = 1
+REQUIRED_WS_VERSION = "13"
+ALLOWED_OPCODES = frozenset({0x1, 0x2, 0x8, 0x9, 0xA})
+CLOSE_MESSAGE_TOO_BIG = 1009
+CLOSE_UNSUPPORTED_DATA = 1003
+
+
+def html_escape(raw: str) -> str:
+    out: list[str] = []
+    for ch in raw:
+        if ch == "&":
+            out.append("&amp;")
+        elif ch == "<":
+            out.append("&lt;")
+        elif ch == ">":
+            out.append("&gt;")
+        elif ch == '"':
+            out.append("&quot;")
+        elif ch == "'":
+            out.append("&#39;")
+        else:
+            out.append(ch)
+    return "".join(out)
+
+
+def cors_allow_origin(origin: str | None, lan_ips: list[str] | None = None) -> str | None:
+    if origin is None:
+        return "*"
+    trimmed = origin.strip()
+    if not trimmed:
+        return "*"
+    if origin_allowed(origin, lan_ips):
+        return trimmed
+    return None
+
+
+def is_private_ipv4(ip: str) -> bool:
+    parts = ip.split(".")
+    if len(parts) != 4:
+        return False
+    try:
+        nums = [int(p) for p in parts]
+    except ValueError:
+        return False
+    if nums[0] == 127:
+        return False
+    if nums[0] == 169 and nums[1] == 254:
+        return False
+    if nums[0] == 192 and nums[1] == 168:
+        return True
+    if nums[0] == 10:
+        return True
+    if nums[0] == 172 and 16 <= nums[1] <= 31:
+        return True
+    return False
+
+
+def sanitize_filename(raw: str) -> str:
+    import os
+    import re
+
+    name = raw.strip()
+    name = os.path.basename(name.replace("\\", "/"))
+    name = re.sub(r"[^A-Za-z0-9._\- ()[\]]", "_", name)
+    if len(name) > 120:
+        name = name[:120]
+    if not name or name in {".", ".."}:
+        return "magicpad-file.bin"
+    return name

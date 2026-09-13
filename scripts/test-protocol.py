@@ -12,6 +12,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from magicpad_proto import (  # noqa: E402
+    ALLOWED_OPCODES,
+    MAX_FRAME_BYTES,
+    MAX_HEADER_BYTES,
+    MAX_TYPE_CHARS,
+    MAX_VOICE_CHARS,
+    PROTO,
+    cors_allow_origin,
     decode_frame13,
     decode_frame18,
     decode_latency_echo,
@@ -19,8 +26,11 @@ from magicpad_proto import (  # noqa: E402
     frame18,
     header_value,
     hello_payload,
+    html_escape,
+    is_private_ipv4,
     mask_frame,
     origin_allowed,
+    sanitize_filename,
     unmask_frame,
 )
 
@@ -86,17 +96,47 @@ class HelloTests(unittest.TestCase):
 
 
 class OriginPolicyTests(unittest.TestCase):
-    def test_table(self):
-        lan = ["10.8.0.2"]  # example-ip
-        self.assertTrue(origin_allowed(None, lan))
-        self.assertTrue(origin_allowed("", lan))
-        self.assertTrue(origin_allowed("http://127.0.0.1:7878", lan))
-        self.assertTrue(origin_allowed("https://localhost:7879", lan))
-        self.assertTrue(origin_allowed("http://[::1]:7878", lan))
-        self.assertTrue(origin_allowed("http://10.8.0.2:7878", lan))  # example-ip
-        self.assertFalse(origin_allowed("http://evil.example", lan))
-        self.assertFalse(origin_allowed("http://10.8.0.99:7878", lan))  # example-ip not in list
-        self.assertFalse(origin_allowed("null", lan))
+    def test_shared_vectors(self):
+        path = os.path.join(HERE, "fixtures", "origin-vectors.json")
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+        default_lan = data["lan"]
+        for row in data["vectors"]:
+            lan = row["lan"] if "lan" in row else default_lan
+            got = origin_allowed(row["origin"], lan)
+            self.assertEqual(
+                got,
+                row["allow"],
+                f"{row['id']}: origin={row['origin']!r} lan={lan!r} got {got}",
+            )
+
+    def test_every_fixture_origin_appears_in_swift(self):
+        """The Swift table is hand-copied. Linux CI can still catch a missing vector."""
+        path = os.path.join(HERE, "fixtures", "origin-vectors.json")
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+        swift_path = os.path.join(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Tests",
+            "MagicPadServerTests",
+            "OriginPolicyTests.swift",
+        )
+        with open(swift_path, encoding="utf-8") as fh:
+            swift = fh.read()
+        missing = []
+        for row in data["vectors"]:
+            origin = row["origin"]
+            if origin is None:
+                continue
+            if origin not in swift:
+                missing.append(f"{row['id']}: {origin!r}")
+        self.assertFalse(
+            missing,
+            "origin-vectors.json rows missing from OriginPolicyTests.swift "
+            "(add these strings to the hand-copied Swift table):\n  "
+            + "\n  ".join(missing),
+        )
 
 
 class HeaderValueTests(unittest.TestCase):
@@ -153,6 +193,50 @@ class RepoIntegrityTests(unittest.TestCase):
         )
         self.assertTrue(any(PLACEHOLDER_MARK in i for i in issues), msg=issues)
         self.assertTrue(any("500" in i or "lines" in i for i in issues), msg=issues)
+
+
+class ProtocolLimitsTests(unittest.TestCase):
+    def test_caps_match_core(self):
+        self.assertEqual(MAX_FRAME_BYTES, 1_048_576)
+        self.assertEqual(MAX_HEADER_BYTES, 16_384)
+        self.assertEqual(MAX_TYPE_CHARS, 2000)
+        self.assertEqual(MAX_VOICE_CHARS, 20_000)
+        self.assertEqual(PROTO, 1)
+        self.assertEqual(ALLOWED_OPCODES, frozenset({0x1, 0x2, 0x8, 0x9, 0xA}))
+
+
+class HTMLEscapeTests(unittest.TestCase):
+    def test_markup(self):
+        self.assertEqual(
+            html_escape("<img src=x onerror=alert(1)>"),
+            "&lt;img src=x onerror=alert(1)&gt;",
+        )
+        self.assertEqual(html_escape("a&b"), "a&amp;b")
+        self.assertEqual(html_escape("<>&"), "&lt;&gt;&amp;")
+
+
+class CORSPolicyTests(unittest.TestCase):
+    def test_star_and_echo_and_omit(self):
+        lan = ["10.8.0.2"]  # example-ip
+        self.assertEqual(cors_allow_origin(None, lan), "*")
+        self.assertEqual(cors_allow_origin("", lan), "*")
+        self.assertEqual(cors_allow_origin("http://127.0.0.1:7878", lan), "http://127.0.0.1:7878")
+        self.assertIsNone(cors_allow_origin("http://evil.example", lan))
+
+
+class LANAddressTests(unittest.TestCase):
+    def test_rfc1918(self):
+        self.assertTrue(is_private_ipv4("10.8.0.2"))  # example-ip
+        self.assertTrue(is_private_ipv4("192.168.1.5"))  # example-ip
+        self.assertFalse(is_private_ipv4("127.0.0.1"))
+        self.assertFalse(is_private_ipv4("8.8.8.8"))
+
+
+class FilenamesTests(unittest.TestCase):
+    def test_sanitize(self):
+        self.assertEqual(sanitize_filename("../../etc/passwd"), "passwd")
+        self.assertEqual(sanitize_filename("a<>b.txt"), "a__b.txt")
+        self.assertEqual(sanitize_filename("."), "magicpad-file.bin")
 
 
 class FixtureTests(unittest.TestCase):
