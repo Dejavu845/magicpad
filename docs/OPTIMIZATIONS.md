@@ -68,7 +68,18 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 | C6-M3 | P1 | YES | Python `is_private_ipv4` rejects non-ASCII / non-digit octets (`int("1_0")` ≠ Swift `Int`). |
 | C6-M4 | P1 | YES | NFC before the filename filter (APFS NFD `é`). Fixture `nfd-e-acute`. |
 
-Remote PR still has the 140-byte stub. Human `git push` required.
+## Cycle 8 — Opus C7 follow-up (local 62 KB server; remote stub unrestored)
+
+| ID | Pri | Linux | What landed |
+|---|---|---|---|
+| C7-M1 | P0 | WRITE | 64-bit length `v > Int.max` sets `pendingCloseCode` (1009) before `return nil`. |
+| C7-M2 | P0 | WRITE | `beginHTTPPost` uses `HTTPHeaderValue.first`; `headerValue` deleted. |
+| C7-M3 | P1 | YES | Core file headers no longer say the Cycle 7 wires are unwired. |
+| C7-M4 | P1 | YES | Fixture gate anchors on quoted literals; expected value must sit outside the input literal. |
+| C7-M5 | P1 | YES | `smoke-all.sh` POST /drop Origin evil → 403 `origin_rejected`; loopback → 200. Grep-locked. |
+| C7-M6 | P1 | WRITE | Both languages require 1–3 ASCII digits (reject `+` / `_` / Arabic-Indic / 4-digit octets). |
+
+Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upload `WebSocketServer.swift`, `index.html`, or `scripts/smoke-all.sh`.
 
 ## Leftover P0
 
