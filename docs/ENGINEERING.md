@@ -90,7 +90,7 @@ python3 scripts/smoke-https.py            # WARN-level TLS
 ```bash
 ./scripts/lint-repo.sh
 python3 scripts/check-html.py MagicPadClient/index.html
-python3 -m unittest scripts/test-protocol.py scripts/test_cycle21_qr.py scripts/test_cycle23_stt.py scripts/test_cycle24_stt_lang.py -v
+python3 -m unittest scripts/test-protocol.py scripts/test_cycle21_qr.py scripts/test_cycle23_stt.py scripts/test_cycle24_stt_lang.py scripts/test_cycle25_stt_ondevice.py -v
 python3 scripts/generate_qr.py --print-only --http   # Cycle 21: URL never contains pair= / token
 ```
 
