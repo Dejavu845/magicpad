@@ -374,6 +374,23 @@ def cert_refuses_secret(raw: str) -> bool:
     return any(p.endswith(s) for s in CERT_REFUSED_SUFFIXES)
 
 
+STT_START = frozenset({"start", "begin", "on"})
+STT_STOP = frozenset({"stop", "end", "off"})
+STT_STATUS = frozenset({"status"})
+
+
+def parse_stt_action(raw: str | None) -> str | None:
+    """Cycle 23: Core STTAction.parse mirror. Unknown → None (bad_action)."""
+    key = (raw or "").strip().lower()
+    if key in STT_START:
+        return "start"
+    if key in STT_STOP:
+        return "stop"
+    if key in STT_STATUS:
+        return "status"
+    return None
+
+
 PAIRING_ENV = "MAGICPAD_PAIRING_TOKEN"
 PAIRING_HELLO_FIELD = "pair"
 PAIRING_REJECTED = "pairing_rejected"
