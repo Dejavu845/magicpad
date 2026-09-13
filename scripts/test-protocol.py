@@ -287,6 +287,32 @@ class Cycle8HTTPOriginSmokeLockTests(unittest.TestCase):
         self.assertIn("Origin: http://127.0.0.1:7878", raw)
 
 
+class Cycle19STTAndEngineeringTests(unittest.TestCase):
+    """MP-12 stt field catalogue; ENGINEERING Origin present tense."""
+
+    def test_protocol_stt_json_fields(self):
+        proto = Path(os.path.dirname(HERE), "docs", "PROTOCOL.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("### `stt` JSON", proto)
+        self.assertIn("`start`/`begin`/`on`", proto)
+        self.assertIn("bad_action", proto)
+        self.assertIn("onDeviceSupported", proto)
+        start = proto.find("### `GET /health` keys")
+        end = proto.find("\n## ", start + 1)
+        health = proto[start:end]
+        self.assertIn("`proto`", health)
+        self.assertNotRegex(health.lower(), r"\b(token|pair|secret|pass)\b")
+
+    def test_engineering_origin_is_present_tense(self):
+        eng = Path(os.path.dirname(HERE), "docs", "ENGINEERING.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn("have no Origin check yet", eng)
+        self.assertIn("HTTPPostOrigin.allows", eng)
+        self.assertIn("origin_rejected", eng)
+
+
 class Cycle18HelloPingTests(unittest.TestCase):
     """MP-12: hello / ping field catalogue."""
 
