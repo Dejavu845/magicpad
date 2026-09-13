@@ -36,7 +36,7 @@ Every `index.html` edit bumps `MAGICPAD_HTML_REV` (`YYYYMMDD-HHMM-hN`, N strictl
 
 - Listeners only when a private IPv4 is present. No UPnP, no tunnel.
 - WebSocket `Origin` allowlist (`OriginPolicy`): missing Origin allowed (curl/python smokes); empty `Origin:` header is **rejected today** by the server parser (literal `"Origin"`), while the policy function treats `""` as allow — see `docs/SECURITY.md`. `http(s)|ws(s)` + host in `{127.0.0.1, localhost, ::1} ∪ LAN IPs`. Else `403`. Debug hatch: `MAGICPAD_ALLOW_ANY_ORIGIN=1` (off by default). Cycle 7 wires `HTTPPostOrigin.allows` on local `POST /drop` and `POST /stt` (403 `origin_rejected`). The remote 140-byte stub does not include that insert (`docs/CYCLE3-HTTP-ORIGIN.md`).
-- Inbound inject strings go through pure `MagicPadCore` parsers (`parseKey` / `parseType` / `parseVoice`). Allowlist + clamps. No `as? String` then inject. Non-string voice `text` → `bad_voice` (not `empty`).
+- Inbound inject strings go through pure `MagicPadCore` parsers (`parseKey` / `parseType` / `parseVoice`). Allowlist + clamps. No `as? String` then inject. Non-string voice `text` → `bad_voice` (not `empty`). Cycle 26: binary pointer/gesture goes through `BinaryFrame.parse` (`<7` bytes → no inject).
 - `/health` JSON must not leak home paths, hostname, SSID, or payload text. `binaryPath` is `MagicPad.app` only. HTML error pages are **not** covered by that promise.
 - Never commit `*.p12` `*.pem` `*.key` `*.cer`, Whisper `*.mlmodelc` / `weight.bin`, or `.env*`.
 
@@ -90,7 +90,7 @@ python3 scripts/smoke-https.py            # WARN-level TLS
 ```bash
 ./scripts/lint-repo.sh
 python3 scripts/check-html.py MagicPadClient/index.html
-python3 -m unittest scripts/test-protocol.py scripts/test_cycle21_qr.py scripts/test_cycle23_stt.py scripts/test_cycle24_stt_lang.py scripts/test_cycle25_stt_ondevice.py -v
+python3 -m unittest scripts/test-protocol.py scripts/test_cycle21_qr.py scripts/test_cycle23_stt.py scripts/test_cycle24_stt_lang.py scripts/test_cycle25_stt_ondevice.py scripts/test_cycle26_binary.py -v
 python3 scripts/generate_qr.py --print-only --http   # Cycle 21: URL never contains pair= / token
 ```
 
