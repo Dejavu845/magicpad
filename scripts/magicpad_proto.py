@@ -435,6 +435,11 @@ WS_TYPES = frozenset(
 )
 
 
+def ws_types_are_names_not_paths() -> bool:
+    """Cycle 39: WS types are JSON type strings, not HTTP paths."""
+    return all("/" not in name for name in WS_TYPES)
+
+
 CLASSIFY_INJECTS = False
 CLASSIFY_IS_HEALTH_KEY = False
 CLASSIFY_HTTP_PATH = None
