@@ -12,6 +12,7 @@
 
 import SwiftUI
 import AppKit
+import MagicPadCore
 
 @main
 struct MagicPadServerApp: App {
@@ -203,6 +204,9 @@ struct MagicPadServerApp: App {
                                    ? "已授权"
                                    : "未授权 · 点「辅助功能」打开设置",
                                secondary: appState.hasAccessibility)
+                    StatusLine(label: "诊断",
+                               value: "proto \(ProtocolLimits.proto) · \(StaticFileLocator.htmlRev()) · \(WebSocketServer.liveClientCount) 端",
+                               secondary: true)
                 }
                 .padding(.horizontal, 18)
                 .padding(.vertical, 12)
@@ -391,6 +395,7 @@ private func showAbout() {
         iPhone 触控板 + 语音直达 Mac。
 
         版本 \(AppVersion.string)
+        proto \(ProtocolLimits.proto) · htmlRev \(StaticFileLocator.htmlRev()) · \(WebSocketServer.liveClientCount) 端
         手机: \(lan.httpUrl)
         HTTPS: \(lan.httpsUrl)
         """
