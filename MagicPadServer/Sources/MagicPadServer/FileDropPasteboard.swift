@@ -125,14 +125,7 @@ enum FileDropPasteboard {
             let ext = preferredExt(contentType: contentType, data: data)
             name = "magicpad-\(Int(Date().timeIntervalSince1970)).\(ext)"
         }
-        // Strip path components and unsafe chars
-        name = (name as NSString).lastPathComponent
-        let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "._- ()[]"))
-        name = String(name.unicodeScalars.map { allowed.contains($0) ? Character($0) : "_" })
-        if name.count > 120 { name = String(name.prefix(120)) }
-        if name.isEmpty || name == "." || name == ".." {
-            name = "magicpad-file.bin"
-        }
+        name = Filenames.sanitize(name)
         return forceMp4IfAacContainer(name, contentType: contentType)
     }
 
