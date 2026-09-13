@@ -19,4 +19,9 @@ public enum ProtocolLimits {
     public static let allowedOpcodes: Set<UInt8> = [0x0, 0x1, 0x2, 0x8, 0x9, 0xA]
     public static let closeMessageTooBig: UInt16 = 1009
     public static let closeUnsupportedData: UInt16 = 1003
+    /// Soft cap on simultaneous WS clients. Cycle 13 wired locally in `accept`.
+    public static let maxClients = 8
+    /// type / text / voice only. Never meters binary 120 Hz or key/ping/hello.
+    public static let jsonTokensPerSec = 40
+    public static let jsonBurst = 80
 }
