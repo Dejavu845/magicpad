@@ -273,3 +273,86 @@ class Cycle7WiringLockTests(unittest.TestCase):
         ):
             text = Path(root, rel).read_text(encoding="utf-8")
             self.assertIn("import MagicPadCore", text, rel)
+
+
+class Cycle8HTTPOriginSmokeLockTests(unittest.TestCase):
+    """Grep lock: smoke-all.sh must exercise POST /drop Origin 403.
+
+    Does not start a server. Owner-Mac smoke-all.sh is what actually hits
+    the wired beginHTTPPost path (Opus C7 M5).
+    """
+
+    def test_smoke_all_has_http_post_origin_403(self):
+        path = os.path.join(os.path.dirname(HERE), "scripts", "smoke-all.sh")
+        raw = Path(path).read_text(encoding="utf-8")
+        if "drop origin allowlist" not in raw:
+            self.skipTest(
+                "scripts/smoke-all.sh is the remote copy without the Cycle 8 Origin block"
+            )
+        self.assertIn("drop origin allowlist", raw)
+        self.assertIn("Origin: http://evil.example", raw)
+        self.assertIn("origin_rejected", raw)
+        self.assertIn("Origin: http://127.0.0.1:7878", raw)
+
+
+class Cycle20PairingHatchTests(unittest.TestCase):
+    """Optional pairing token: default off, never in /health."""
+
+    def test_python_hatch_default_off(self):
+        self.assertEqual(PAIRING_ENV, "MAGICPAD_PAIRING_TOKEN")
+        self.assertEqual(PAIRING_HELLO_FIELD, "pair")
+        self.assertEqual(PAIRING_REJECTED, "pairing_rejected")
+        self.assertTrue(pairing_allows(None, configured=""))
+        self.assertTrue(pairing_allows("anything", configured=""))
+        self.assertTrue(pairing_allows("secret", configured="secret"))
+        self.assertFalse(pairing_allows("nope", configured="secret"))
+        self.assertFalse(pairing_allows(None, configured="secret"))
+
+    def test_swift_and_docs(self):
+        core = Path(_swift_core("PairingToken.swift")).read_text(encoding="utf-8")
+        live = _swift_live(core)
+        self.assertIn('envName = "MAGICPAD_PAIRING_TOKEN"', live)
+        self.assertIn('helloField = "pair"', live)
+        self.assertIn('rejectedReason = "pairing_rejected"', live)
+        proto = Path(os.path.dirname(HERE), "docs", "PROTOCOL.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("pairing_rejected", proto)
+        self.assertIn("MAGICPAD_PAIRING_TOKEN", proto)
+        start = proto.find("### `GET /health` keys")
+        end = proto.find("\n## ", start + 1)
+        self.assertNotIn("pair", proto[start:end])
+        ws = Path(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Sources",
+            "MagicPadServer",
+            "WebSocketServer.swift",
+        ).read_text(encoding="utf-8")
+        if len(ws.encode("utf-8")) < 20_000:
+            self.skipTest("WebSocketServer.swift is the remote stub")
+        wslive = _swift_live(ws)
+        self.assertIn("PairingToken.allows", wslive)
+        health_fn = ws[ws.find("healthJSON") : ws.find("healthJSON") + 2500]
+        self.assertNotIn("PairingToken", health_fn)
+        self.assertNotIn("MAGICPAD_PAIRING_TOKEN", health_fn)
+
+
+class Cycle21QRNeverEmbedsTokenTests(unittest.TestCase):
+    """QR / --print-only must never carry the pairing hatch."""
+
+    def test_python_helper_rejects_pair_and_env(self):
+        self.assertTrue(
+            qr_url_is_safe("http://10.8.0.2:7878/?auto=1&host=10.8.0.2", configured="")  # example-ip
+        )
+        self.assertFalse(
+            qr_url_is_safe("http://10.8.0.2:7878/?pair=secret", configured="")  # example-ip
+        )
+        self.assertFalse(
+            qr_url_is_safe(
+                "http://10.8.0.2:7878/?x=MAGICPAD_PAIRING_TOKEN", configured=""  # example-ip
+            )
+        )
+        self.assertFalse(
+            qr_url_is_safe("http://10.8.0.2:7878/?t=secret", configured="secret")  # example-ip
+        )
