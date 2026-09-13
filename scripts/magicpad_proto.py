@@ -188,6 +188,11 @@ def origin_parse(origin: str) -> tuple[str, str] | None:
     scheme = (parsed.scheme or "").lower()
     if scheme not in ("http", "https", "ws", "wss"):
         return None
+    # urlparse.query / .fragment are always str ('' when absent). Swift
+    # URLComponents returns nil when absent and "" when present-but-empty
+    # (http://host/# and http://host?). Reject on the raw characters so
+    # both sides match. username/password are None when absent and "" when
+    # present-but-empty (http://@host) — test `is not None`, not truthiness.
     if "?" in trimmed or "#" in trimmed:
         return None
     if parsed.username is not None or parsed.password is not None:
@@ -229,6 +234,7 @@ def origin_allowed(origin: str | None, lan_ips: list[str] | None = None) -> bool
     return host in allowed
 
 
+# Mirror of MagicPadCore.ProtocolLimits / HTMLEscape / CORSPolicy / LANAddress / Filenames.
 MAX_FRAME_BYTES = 1_048_576
 MAX_HEADER_BYTES = 16_384
 MAX_TYPE_CHARS = 2000
@@ -328,6 +334,8 @@ def is_private_ipv4(ip: str) -> bool:
     parts = ip.split(".")
     if len(parts) != 4:
         return False
+    # One to three ASCII digits. Reject sign / underscore / Unicode digits
+    # that Python int() or Swift Int(String) would accept (Opus C7 M6).
     if any((not p.isascii()) or (not p.isdigit()) or not (1 <= len(p) <= 3) for p in parts):
         return False
     try:
@@ -356,6 +364,8 @@ def sanitize_filename(raw: str) -> str:
     name = raw.strip().replace("\\", "/").rstrip("/")
     name = os.path.basename(name)
     name = unicodedata.normalize("NFC", name)
+    # Swift CharacterSet.alphanumerics includes Mn. Keep combining marks
+    # that have no NFC precomposed form (Opus C7 §5 residual).
     def _keep(ch: str) -> bool:
         return ch.isalnum() or ch in "._- ()[]" or unicodedata.category(ch) == "Mn"
 
