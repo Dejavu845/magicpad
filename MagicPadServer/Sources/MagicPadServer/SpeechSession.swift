@@ -80,6 +80,17 @@ final class SpeechSession: @unchecked Sendable {
 
     // MARK: - Start / Stop (live Mac mic)
 
+    /// Whisper weights on disk (ready or cached) or Apple on-device recognition.
+    /// Cloud Apple Speech is not an engine — refuse with `no_on_device_stt`.
+    func hasOnDeviceSTT(lang: String? = nil) -> Bool {
+        if LocalWhisper.shared.isReady || LocalWhisper.shared.isCached {
+            return true
+        }
+        let localeId = lang.map { normalizeLang($0) } ?? currentLang
+        return SFSpeechRecognizer(locale: Locale(identifier: localeId))?
+            .supportsOnDeviceRecognition ?? false
+    }
+
     func start(lang: String?, preferOnDevice: Bool = true) {
         if isListening {
             push(["type": "stt_status", "state": "already", "lang": currentLang])
@@ -87,6 +98,17 @@ final class SpeechSession: @unchecked Sendable {
         }
         currentLang = normalizeLang(lang)
         self.preferOnDevice = preferOnDevice
+        if !hasOnDeviceSTT(lang: currentLang) {
+            push([
+                "type": "stt_final",
+                "ok": false,
+                "reason": "no_on_device_stt",
+                "text": "",
+                "engine": "none",
+                "onDevice": false,
+            ])
+            return
+        }
 
         requestMic { [weak self] micOk, micReason in
             guard let self else { return }
@@ -105,7 +127,7 @@ final class SpeechSession: @unchecked Sendable {
             }
             LocalWhisper.shared.ensureReady { ready, _ in
                 if !ready {
-                    MagicLog.event("whisper load failed while recording — Apple fallback on stop")
+                    MagicLog.event("whisper load failed while recording — Apple on-device only on stop")
                 }
             }
         }
@@ -206,6 +228,10 @@ final class SpeechSession: @unchecked Sendable {
             completion(false, "", "too_large", false)
             return
         }
+        if !hasOnDeviceSTT(lang: lang) {
+            completion(false, "", "no_on_device_stt", false)
+            return
+        }
 
         sessionQueue.async { [weak self] in
             guard let self else { return }
@@ -246,18 +272,20 @@ final class SpeechSession: @unchecked Sendable {
             return
         }
 
+        guard recognizer.supportsOnDeviceRecognition else {
+            completion(false, "", "no_on_device_stt", false)
+            return
+        }
         let request = SFSpeechURLRecognitionRequest(url: url)
         request.shouldReportPartialResults = false
-        let onDeviceFlag: Bool
-        if preferOnDevice && recognizer.supportsOnDeviceRecognition {
-            request.requiresOnDeviceRecognition = true
-            onDeviceFlag = true
-        } else {
-            request.requiresOnDeviceRecognition = false
-            onDeviceFlag = false
-        }
+        // Never set requiresOnDeviceRecognition = false — that is cloud Apple Speech.
+        // preferOnDevice is ignored: off-device Apple Speech is not a product engine.
+        request.requiresOnDeviceRecognition = true
+        let onDeviceFlag = true
 
-        MagicLog.event("stt file \(data.count)B ext=\(ext) lang=\(localeId) onDevice=\(onDeviceFlag)")
+        MagicLog.event(
+            "stt file \(data.count)B ext=\(ext) lang=\(localeId) onDevice=\(onDeviceFlag) preferOnDevice=\(preferOnDevice)"
+        )
 
         final class Gate: @unchecked Sendable {
             private let lock = NSLock()
@@ -567,15 +595,23 @@ final class SpeechSession: @unchecked Sendable {
         lock.lock()
         _supportsOnDevice = recognizer.supportsOnDeviceRecognition
         lock.unlock()
+        // Forcing requiresOnDeviceRecognition = true when unsupported crashes some
+        // builds. Cloud Apple Speech is not a fallback — refuse instead.
+        guard recognizer.supportsOnDeviceRecognition else {
+            push([
+                "type": "stt_final",
+                "ok": false,
+                "reason": "no_on_device_stt",
+                "text": "",
+                "engine": "apple",
+                "onDevice": false,
+            ])
+            return
+        }
 
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
-        // Prefer on-device only when supported; forcing unsupported crashes some builds.
-        if preferOnDevice && recognizer.supportsOnDeviceRecognition {
-            request.requiresOnDeviceRecognition = true
-        } else {
-            request.requiresOnDeviceRecognition = false
-        }
+        request.requiresOnDeviceRecognition = true
         self.request = request
 
         let engine = AVAudioEngine()

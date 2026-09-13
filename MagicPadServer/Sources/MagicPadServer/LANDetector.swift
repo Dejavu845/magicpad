@@ -11,6 +11,7 @@
 
 import Foundation
 import Darwin
+import MagicPadCore
 
 /// One getifaddrs window: /health ip + ips + httpUrl host + QR host + routeIface.
 /// Pinned until path/simulate flush (no clock TTL). No `route`/`scutil` in this snapshot.
@@ -332,14 +333,7 @@ enum LANDetector {
     }
 
     private static func isPrivate(_ ip: String) -> Bool {
-        let parts = ip.split(separator: ".").compactMap { Int($0) }
-        guard parts.count == 4 else { return false }
-        if parts[0] == 127 { return false }
-        if parts[0] == 169 && parts[1] == 254 { return false }
-        if parts[0] == 192 && parts[1] == 168 { return true }
-        if parts[0] == 10 { return true }
-        if parts[0] == 172 && (16...31).contains(parts[1]) { return true }
-        return false
+        LANAddress.isPrivate(ip)
     }
 
     private struct NamedIP {

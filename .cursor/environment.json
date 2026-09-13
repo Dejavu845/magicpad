@@ -1,0 +1,5 @@
+{
+  "snapshot": "default",
+  "install": "sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck && python3 -m pip install --user --quiet websocket-client 'qrcode[pil]' && (command -v swift >/dev/null && swift --version | head -1 || echo 'swift SKIP: no toolchain (expected on Linux without macOS SDK)')",
+  "terminals": []
+}

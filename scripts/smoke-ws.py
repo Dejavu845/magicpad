@@ -3,10 +3,13 @@
 
 Usage:
   python3 scripts/smoke-ws.py
+  python3 scripts/smoke-ws.py --origin http://127.0.0.1:7878
+  python3 scripts/smoke-ws.py --origin http://evil.example --expect-reject
   BASE_HOST=127.0.0.1 BASE_PORT=7878 python3 scripts/smoke-ws.py
 """
 from __future__ import annotations
 
+import argparse
 import base64
 import json
 import os
@@ -16,8 +19,17 @@ import sys
 import time
 import urllib.request
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from magicpad_proto import frame13, frame18, mask_frame  # noqa: E402
+
 HOST = os.environ.get("BASE_HOST", "127.0.0.1")
 PORT = int(os.environ.get("BASE_PORT", "7878"))
+ORIGIN: str | None = None
+EXPECT_REJECT = False
+
+
+class HandshakeRejected(RuntimeError):
+    """Non-101 WebSocket upgrade (Origin allowlist, missing headers, …)."""
 
 
 def http_health() -> dict:
@@ -26,30 +38,21 @@ def http_health() -> dict:
         return json.loads(r.read().decode())
 
 
-def ws_connect() -> socket.socket:
+def ws_connect(origin: str | None = None) -> socket.socket:
     key = base64.b64encode(os.urandom(16)).decode()
+    extra = f"Origin: {origin}\r\n" if origin else ""
     req = (
         f"GET / HTTP/1.1\r\nHost: {HOST}:{PORT}\r\n"
         f"Upgrade: websocket\r\nConnection: Upgrade\r\n"
+        f"{extra}"
         f"Sec-WebSocket-Key: {key}\r\nSec-WebSocket-Version: 13\r\n\r\n"
     ).encode()
     s = socket.create_connection((HOST, PORT), timeout=4)
     s.sendall(req)
     resp = s.recv(4096)
     if b"101" not in resp:
-        raise RuntimeError(f"WS handshake failed: {resp[:200]!r}")
+        raise HandshakeRejected(f"WS handshake failed: {resp[:200]!r}")
     return s
-
-
-def mask_frame(opcode: int, data: bytes) -> bytes:
-    mask = os.urandom(4)
-    bl = len(data)
-    if bl < 126:
-        hdr = bytes([0x80 | opcode, 0x80 | bl]) + mask
-    else:
-        hdr = bytes([0x80 | opcode, 0x80 | 126]) + struct.pack(">H", bl) + mask
-    body = bytes(b ^ mask[i % 4] for i, b in enumerate(data))
-    return hdr + body
 
 
 def send_bin(s: socket.socket, data: bytes) -> None:
@@ -60,24 +63,6 @@ def send_json(s: socket.socket, obj: dict) -> None:
     s.sendall(mask_frame(0x1, json.dumps(obj).encode()))
 
 
-def frame13(phase: int, dx: int = 0, dy: int = 0, buttons: int = 0) -> bytes:
-    buf = bytearray(13)
-    buf[0] = phase & 0xFF
-    struct.pack_into("<h", buf, 1, dx)
-    struct.pack_into("<h", buf, 3, dy)
-    buf[6] = buttons & 0xFF
-    return bytes(buf)
-
-
-def frame18(phase: int, fingers: int = 1, gesture: int = 0, ext: int = 0) -> bytes:
-    buf = bytearray(18)
-    buf[0] = phase & 0xFF
-    buf[13] = fingers & 0xFF
-    buf[14] = gesture & 0xFF
-    struct.pack_into("<h", buf, 15, ext)
-    return bytes(buf)
-
-
 def main() -> int:
     print(f"smoke → {HOST}:{PORT}")
     h = http_health()
@@ -85,7 +70,17 @@ def main() -> int:
     assert h.get("ok") is True, "health not ok"
     assert h.get("html") is True, "html missing"
 
-    s = ws_connect()
+    if EXPECT_REJECT:
+        try:
+            s = ws_connect(ORIGIN)
+        except HandshakeRejected as e:
+            print("PASS handshake rejected (expected):", e)
+            return 0
+        s.close()
+        print("FAIL: handshake succeeded but --expect-reject was set", file=sys.stderr)
+        return 1
+
+    s = ws_connect(ORIGIN)
     print("ws: open PASS")
 
     def recv_json(timeout: float = 2.0, retries: int = 8):
@@ -212,9 +207,33 @@ def main() -> int:
     return 0
 
 
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="MagicPad overnight WS smoke — stdlib only")
+    p.add_argument("--origin", default=None, help="Origin request header (optional)")
+    p.add_argument(
+        "--expect-reject",
+        action="store_true",
+        help="PASS if the WS handshake is rejected (non-101 / Origin allowlist). "
+        "FAIL if the handshake succeeds.",
+    )
+    p.add_argument("--host", default=None, help="Override BASE_HOST")
+    p.add_argument("--port", type=int, default=None, help="Override BASE_PORT")
+    return p.parse_args(argv)
+
+
 if __name__ == "__main__":
+    args = parse_args()
+    if args.host:
+        HOST = args.host
+    if args.port:
+        PORT = args.port
+    ORIGIN = args.origin
+    EXPECT_REJECT = bool(args.expect_reject)
     try:
         sys.exit(main())
+    except HandshakeRejected as e:
+        print("FAIL handshake:", e, file=sys.stderr)
+        sys.exit(1)
     except Exception as e:
         print("FAIL:", e, file=sys.stderr)
         sys.exit(1)

@@ -1,0 +1,25 @@
+{
+  "comment": "Shared LANAddress.isPrivate / is_private_ipv4 vectors. 10.8.0.2 is example-ip. test-protocol.py asserts every ip string appears in LANAddressTests.swift.",
+  "vectors": [
+    {"id": "rfc1918-10", "ip": "10.8.0.2", "private": true, "note": "example-ip"},
+    {"id": "rfc1918-192", "ip": "192.168.1.5", "private": true, "note": "example-ip"},
+    {"id": "rfc1918-172", "ip": "172.16.0.1", "private": true, "note": "example-ip"},
+    {"id": "rfc1918-172-hi", "ip": "172.31.255.255", "private": true, "note": "example-ip"},
+    {"id": "loopback", "ip": "127.0.0.1", "private": false},
+    {"id": "link-local", "ip": "169.254.1.1", "private": false},
+    {"id": "public", "ip": "8.8.8.8", "private": false},
+    {"id": "172-below", "ip": "172.15.0.1", "private": false},
+    {"id": "172-above", "ip": "172.32.0.1", "private": false},
+    {"id": "not-an-ip", "ip": "not-an-ip", "private": false},
+    {"id": "three-octet", "ip": "10.0.0", "private": false, "note": "example-ip"},
+    {"id": "letter-octet", "ip": "10.a.0.0.1", "private": false, "note": "example-ip"},
+    {"id": "trailing-dot", "ip": "10.0.0.1.", "private": false, "note": "example-ip"},
+    {"id": "octet-999", "ip": "10.999.0.0", "private": false, "note": "example-ip"},
+    {"id": "octet-neg", "ip": "192.168.-1.0", "private": false, "note": "example-ip"},
+    {"id": "leading-plus", "ip": "+10.0.0.1", "private": false, "note": "example-ip"},
+    {"id": "underscore-octet", "ip": "10.1_0.0.1", "private": false, "note": "example-ip"},
+    {"id": "arabic-indic", "ip": "١٠.0.0.1", "private": false, "note": "example-ip"},
+    {"id": "space-octet", "ip": "10. 0.0.1", "private": false, "note": "example-ip"},
+    {"id": "four-digit-octet", "ip": "10.0000.0.1", "private": false, "note": "example-ip"}
+  ]
+}

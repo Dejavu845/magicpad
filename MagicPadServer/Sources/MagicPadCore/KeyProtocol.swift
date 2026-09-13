@@ -374,4 +374,73 @@ public enum KeyProtocol {
         let reason = allowed ? action : "unknown_action"
         return ParsedKey(action: action, count: count, allowed: allowed, reason: reason)
     }
+
+    // MARK: - Voice payload (MP-03)
+
+    public static let maxVoiceChars = 20_000
+    public static let allowedVoiceLangs: Set<String> = ["zh-CN", "en-US", "ja-JP"]
+    public static let allowedVoiceModes: Set<String> = ["append", "replace"]
+
+    public struct ParsedVoice: Equatable, Sendable {
+        public let text: String
+        public let lang: String
+        public let autoPaste: Bool
+        public let mode: String
+        public let truncated: Bool
+        public let reason: String?
+
+        public init(text: String, lang: String, autoPaste: Bool, mode: String, truncated: Bool, reason: String?) {
+            self.text = text
+            self.lang = lang
+            self.autoPaste = autoPaste
+            self.mode = mode
+            self.truncated = truncated
+            self.reason = reason
+        }
+
+        public var isEmpty: Bool { reason == "empty" }
+    }
+
+    /// Pure voice parse: missing/null/whitespace-only → reason "empty";
+    /// non-string `text` → reason "bad_voice" (no inject, distinct from empty);
+    /// grapheme-clamp to `maxVoiceChars` → truncated + reason "voice_truncated";
+    /// lang ∈ {zh-CN, en-US, ja-JP} else zh-CN; mode ∈ {append, replace} else append;
+    /// autoPaste JSON boolean else default true.
+    public static func parseVoice(from json: [String: Any]) -> ParsedVoice {
+        func langAndModeAndPaste() -> (String, String, Bool) {
+            let langRaw = (json["lang"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let lang = allowedVoiceLangs.contains(langRaw) ? langRaw : "zh-CN"
+            let modeRaw = (json["mode"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            let mode = allowedVoiceModes.contains(modeRaw) ? modeRaw : "append"
+            var autoPaste = true
+            if let raw = json["autoPaste"], isJSONBoolean(raw), let b = raw as? Bool {
+                autoPaste = b
+            } else if let raw = json["autoPaste"], isJSONBoolean(raw), let n = raw as? NSNumber {
+                autoPaste = n.boolValue
+            }
+            return (lang, mode, autoPaste)
+        }
+
+        guard let rawVal = json["text"] else {
+            let (lang, mode, paste) = langAndModeAndPaste()
+            return ParsedVoice(text: "", lang: lang, autoPaste: paste, mode: mode, truncated: false, reason: "empty")
+        }
+        if rawVal is NSNull {
+            let (lang, mode, paste) = langAndModeAndPaste()
+            return ParsedVoice(text: "", lang: lang, autoPaste: paste, mode: mode, truncated: false, reason: "empty")
+        }
+        guard let s = rawVal as? String else {
+            let (lang, mode, paste) = langAndModeAndPaste()
+            return ParsedVoice(text: "", lang: lang, autoPaste: paste, mode: mode, truncated: false, reason: "bad_voice")
+        }
+        let (lang, mode, paste) = langAndModeAndPaste()
+        if s.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return ParsedVoice(text: "", lang: lang, autoPaste: paste, mode: mode, truncated: false, reason: "empty")
+        }
+        if s.count > maxVoiceChars {
+            let clipped = String(s.prefix(maxVoiceChars))
+            return ParsedVoice(text: clipped, lang: lang, autoPaste: paste, mode: mode, truncated: true, reason: "voice_truncated")
+        }
+        return ParsedVoice(text: s, lang: lang, autoPaste: paste, mode: mode, truncated: false, reason: nil)
+    }
 }

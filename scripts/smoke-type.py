@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 
@@ -1128,6 +1129,32 @@ def main() -> int:
         expect_ok=True,
         expect_reason="unstick",
     )
+
+    # --- MP-03: voice clamp (25000 → voice_truncated, prefix ≤ 20000) ---
+    print("--- voice clamp ---")
+    voice_oversize = "v" * 25000
+    ack_v = send({"type": "voice", "text": voice_oversize, "mode": "append", "autoPaste": False, "ts": time.time()})
+    check(
+        ack_v,
+        "voice 25000 → voice_truncated",
+        expect_ok=True,
+        expect_reason="voice_truncated",
+    )
+    try:
+        import shutil
+        if shutil.which("pbpaste"):
+            clip = os.popen("pbpaste").read()
+            # grapheme/char count on macOS pasteboard
+            nclip = len(clip)
+            if nclip > 20000:
+                print(f"  FAIL pbpaste length {nclip} > 20000")
+                ok = False
+            else:
+                print(f"  pbpaste chars={nclip} ≤ 20000 PASS")
+        else:
+            print("  SKIP pbpaste (not macOS)")
+    except Exception as e:
+        print("  SKIP pbpaste:", e)
 
     ws.close()
 

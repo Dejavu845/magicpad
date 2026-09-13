@@ -65,6 +65,8 @@
 ## 安全
 
 - 只听局域网；无账号；无 Internet 出口
+- WebSocket `Origin` 允许列表（缺省 Origin 仍给 curl/python smoke）：见 [`docs/SECURITY.md`](SECURITY.md)
 - 网页麦必须 HTTPS :7879（自签）
 - 凭证不进仓库
 - 产品不接任何 LLM / agent API
+- 字段与上限：[`docs/PROTOCOL.md`](PROTOCOL.md)
