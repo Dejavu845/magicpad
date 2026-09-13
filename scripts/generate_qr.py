@@ -289,6 +289,9 @@ def refuse_pairing_token_in_qr_sources() -> None:
         if "pair=" in body.lower():
             print(f"❌ {path.name} must never embed pair= in a QR URL", file=sys.stderr)
             sys.exit(1)
+        if "classify=" in body.lower():
+            print(f"❌ {path.name} must never embed classify= in a QR URL", file=sys.stderr)
+            sys.exit(1)
         if PAIRING_ENV in body:
             print(
                 f"❌ {path.name} must never read {PAIRING_ENV} into a QR",
