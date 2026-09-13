@@ -280,6 +280,28 @@ class Cycle8HTTPOriginSmokeLockTests(unittest.TestCase):
         self.assertIn("Origin: http://127.0.0.1:7878", raw)
 
 
+class Cycle14VersionAndHTMLTests(unittest.TestCase):
+    """MP-19 Version.swift; MP-15/16 gates live in check-html.py."""
+
+    def test_version_swift_is_the_only_semver_source(self):
+        root = os.path.dirname(HERE)
+        ver = Path(root, "MagicPadServer", "Sources", "MagicPadServer", "Version.swift").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('static let string = "0.1.0"', ver)
+        sh = Path(root, "scripts", "build_app.sh").read_text(encoding="utf-8")
+        self.assertIn("swift build --show-bin-path", sh)
+        self.assertIn("Version.swift", sh)
+        self.assertNotIn('VERSION="0.1.0"', sh)
+
+    def test_check_html_fails_missing_a11y(self):
+        path = os.path.join(os.path.dirname(HERE), "scripts", "check-html.py")
+        raw = Path(path).read_text(encoding="utf-8")
+        self.assertIn('fails.append(":focus-visible missing")', raw)
+        self.assertIn('role="tablist"', raw)
+        self.assertIn("syncLayoutSoon", raw)
+
+
 class Cycle13JSONRateLimitTests(unittest.TestCase):
     """MP-23: type/text/voice token bucket; never meters key/ping/binary."""
 
