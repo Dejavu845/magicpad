@@ -118,6 +118,44 @@ def decode_latency_echo(data: bytes) -> dict:
     return {"seq": seq, "t_ms": t_ms}
 
 
+def parse_binary_frame(data: bytes | None) -> dict | None:
+    """Cycle 26: Core BinaryFrame.parse mirror. <7 bytes → None (no inject)."""
+    if data is None or len(data) < 7:
+        return None
+    phase = data[0]
+    dx = struct.unpack_from("<h", data, 1)[0]
+    dy = struct.unpack_from("<h", data, 3)[0]
+    pressure = data[5]
+    buttons = data[6]
+    t_ms = 0
+    seq = 0
+    if len(data) >= 13:
+        t_ms = struct.unpack_from("<I", data, 7)[0]
+        seq = struct.unpack_from("<H", data, 11)[0]
+    fingers = 1
+    gesture = 0
+    ext = 0
+    if len(data) >= 18:
+        fingers = data[13]
+        gesture = data[14]
+        ext = struct.unpack_from("<h", data, 15)[0]
+    return {
+        "phase": phase,
+        "dx": dx,
+        "dy": dy,
+        "pressure": pressure,
+        "buttons": buttons,
+        "t_ms": t_ms,
+        "seq": seq,
+        "fingers": fingers,
+        "gesture": gesture,
+        "ext": ext,
+        "kind": PHASES.get(phase, "unknown"),
+        "byte_count": len(data),
+        "is_gesture": phase >= 10,
+    }
+
+
 def hello_payload(ua: str, ts: float) -> dict:
     return {"type": "hello", "ua": ua, "ts": ts, "proto": PROTO}
 
