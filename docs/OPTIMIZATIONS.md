@@ -128,6 +128,12 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 | MP-16 | P1 | YES | Debounced `syncLayoutSoon` (80 ms) on `resize` / `visualViewport.resize`. 44/48 px min-size guard; kb-open draft bar exempt. |
 | MP-19 | P2 | YES | `AppVersion.string` in `Version.swift`; `build_app.sh` greps it and uses `swift build --show-bin-path`. |
 
+## Cycle 34 — QR never carries a classify query
+
+| ID | Linux | What |
+|---|---|---|
+| MP-12 | YES | `qr_url_is_safe` rejects `classify=`. Swift `PairingToken.qrURLIsSafe` matches. `Classify.qrQueryKey`. Tests in `scripts/test_cycle34_qr_classify.py`. |
+
 ## Cycle 33 — classify has no HTTP route
 
 | ID | Linux | What |
@@ -258,7 +264,7 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 | ID | Linux | Next step |
 |---|---|---|
 | MP-11 | WRITE | Additive `proto: 1` on local `hello` / `hello_ack` / `/health` (Cycle 10). Remote stub unrestored. |
-| MP-12 | YES | Cycle 19: `stt` JSON fields. Cycle 20 pairing hatch. Cycle 21–22: QR never embeds token. Cycle 23–25: STT action / lang / onDevice in Core. Cycle 30: classify never injects. Cycle 32: classify never a `/health` key. Cycle 33: no HTTP `/classify`. |
+| MP-12 | YES | Cycle 19: `stt` JSON fields. Cycle 20 pairing hatch. Cycle 21–22: QR never embeds token. Cycle 23–25: STT action / lang / onDevice in Core. Cycle 30: classify never injects. Cycle 32: classify never a `/health` key. Cycle 33: no HTTP `/classify`. Cycle 34: QR never carries `classify=`. |
 | MP-13 | WRITE | Cycle 11: logs count/reason only (no `text.prefix`); `Logger` sets `0600` on `/tmp/magicpad-server.log`. EventInjector redact is local-only (63 KB). |
 | MP-14 | WRITE | Cycle 12: refuse `no_on_device_stt` when Whisper missing and Apple on-device unsupported. Remote SpeechSession unrestored until human push. |
 | MP-15 | YES | Cycle 14: tablist / h1 / `:focus-visible` / application. `index.html` unrestored on remote until human push. |
