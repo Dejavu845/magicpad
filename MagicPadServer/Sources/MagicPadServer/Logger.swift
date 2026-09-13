@@ -19,13 +19,15 @@ enum MagicLog {
     private static let subsystem = "app.magicpad.server"
     private static let logger = os.Logger(subsystem: subsystem, category: "core")
 
-    // 写到 /tmp/magicpad-server.log(append 模式)
+    // 写到 /tmp/magicpad-server.log (append). Cycle 11: mode 0600.
     // Swift Foundation 没有 forAppendingTo,要手动 seekToEnd
     private static let logFile: FileHandle? = {
         let path = "/tmp/magicpad-server.log"
         let fm = FileManager.default
         if !fm.fileExists(atPath: path) {
-            fm.createFile(atPath: path, contents: nil)
+            fm.createFile(atPath: path, contents: nil, attributes: [.posixPermissions: 0o600])
+        } else {
+            try? fm.setAttributes([.posixPermissions: 0o600], ofItemAtPath: path)
         }
         // forWritingAtPath 打开 mode = write,默认 offset 0(会覆盖)
         // 立刻 seekToEndOfFile() 跳到文件尾,后续 write 就在文件尾追加
