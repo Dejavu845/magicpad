@@ -28,6 +28,10 @@ Phases: 0 down · 1 move · 2 up · 3 cancel · 10 double · 11 right · 20 scro
 
 Unknown JSON `type` is ignored. Non-object / non-string `type` is ignored.
 
+### Inbound `type` allowlist (Cycle 27)
+
+`WSType.parse` / `parse_ws_type`: exact `voice` · `key` · `type` · `text` · `stt` · `hello` · `ping` · `classify`. Trim only; case-sensitive. Unknown / missing → ignore (no inject). HTTP `POST /drop` is not a WS type.
+
 ### hello / ping (MP-12)
 
 `hello` inbound: `ua` string, `ts` number, optional `proto` (additive; missing is fine).  
@@ -67,7 +71,7 @@ Env `MAGICPAD_PAIRING_TOKEN` empty → off (current product). When set, `hello` 
 
 `scripts/generate_qr.py` and runtime `QRImageLoader.mobileURL` encode only `{scheme}://{ip}:{port}/` plus optional `?auto=1&host={ip}`. They must never contain `pair=`, `MAGICPAD_PAIRING_TOKEN`, or the env token value. `--pair` is refused. Pairing stays a `hello.pair` field when the env hatch is on.
 
-`maxVoiceChars` is 20000 while `maxTypeChars` is 2000 because voice lands on the pasteboard and is not `keySerial`-bound. Type injects keystrokes on the inject serial. Cycle 13 meters `type` / `text` / `voice` with `JSONRateLimit` (40/s, burst 80). Over the burst the ack is `voice_ack{ok:false, reason:rate_limited}` and nothing is injected. `key` / `ping` / `hello` / `stt` / `classify` and every binary 13/18-byte frame are **not** metered.
+`maxVoiceChars` is 20000 while `maxTypeChars` is 2000 because voice lands on the pasteboard and is not `keySerial`-bound. Cycle 13 meters `type` / `text` / `voice` with `JSONRateLimit` (40/s, burst 80). Over the burst the ack is `voice_ack{ok:false, reason:rate_limited}` and nothing is injected. `key` / `ping` / `hello` / `stt` / `classify` and every binary 13/18-byte frame are **not** metered.
 
 ## HTTP
 
