@@ -372,3 +372,27 @@ def cert_allows_get(raw: str) -> bool:
 def cert_refuses_secret(raw: str) -> bool:
     p = cert_normalized_path(raw).lower()
     return any(p.endswith(s) for s in CERT_REFUSED_SUFFIXES)
+
+
+PAIRING_ENV = "MAGICPAD_PAIRING_TOKEN"
+PAIRING_HELLO_FIELD = "pair"
+PAIRING_REJECTED = "pairing_rejected"
+
+
+def pairing_configured(env: dict[str, str] | None = None) -> str | None:
+    import os
+
+    raw = (env if env is not None else os.environ).get(PAIRING_ENV, "")
+    v = str(raw).strip()
+    return v or None
+
+
+def pairing_allows(provided: str | None, configured: str | None = None) -> bool:
+    """Off (configured empty/None) → allow. On → hello.pair must match."""
+    want = configured
+    if want is None:
+        want = pairing_configured()
+    if not want:
+        return True
+    got = (provided or "").strip()
+    return got == want
