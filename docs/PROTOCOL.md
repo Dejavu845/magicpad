@@ -110,7 +110,7 @@ Inbound: `type=stt`, `action` ∈ `start`/`begin`/`on` · `stop`/`end`/`off` · 
 ## Limits (`MagicPadCore.ProtocolLimits` / `scripts/magicpad_proto.py`)
 
 | Constant | Value | Where |
-|---|---|
+|---|---|---|
 | `maxFrameBytes` | 1 048 576 (1 MiB) | WS `parseFrame` — Cycle 7 wired locally (`pendingCloseCode` then close after unlock). Remote stub unrestored. |
 | `maxHeaderBytes` | 16 384 | pre-handshake header — Cycle 7 wired (431 if over cap without `\\r\\n\\r\\n`) |
 | `maxTypeChars` | 2 000 | `type` / `text` JSON |
