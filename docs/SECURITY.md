@@ -42,6 +42,10 @@ Exact-set host match, no IPv4/IPv6 normalization. These are **rejected on purpos
 
 `HTMLEscape.escape` + `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'` + `X-Content-Type-Options: nosniff` are the intended fix for the reflected `fallbackHTML` sink (Opus H1). A 503 that lists `index.html` candidates must use `sourceLabel()`, not filesystem paths. `CORSPolicy` only changes who may *read* replies (`needsVary` travels with the ACAO value). Insert both per `docs/CYCLE4-WIRING.md` after a human restore of `WebSocketServer.swift`.
 
+## On-device STT only (MP-14)
+
+`SpeechSession` must not call Apple Speech with `requiresOnDeviceRecognition = false`. If Whisper weights are missing and Apple on-device recognition is unsupported, the reason is `no_on_device_stt` (live `stt` and `POST /stt`). Cloud STT / LLM remain out of product scope.
+
 ## Reporting
 
 GitHub issue on this repo. Do not mail secrets or LAN IPs to a personal inbox.

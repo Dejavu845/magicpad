@@ -24,7 +24,7 @@ Phases: 0 down · 1 move · 2 up · 3 cancel · 10 double · 11 right · 20 scro
 | `type` / `text` | `text` string, max **2000** graphemes | `empty_type` `bad_type` `type` `type_truncated` |
 | `voice` | `text` string, max **20000** graphemes; `lang` ∈ zh-CN, en-US, ja-JP (else zh-CN); `mode` ∈ append, replace (else append); `autoPaste` JSON bool (else true) | `empty` · `bad_voice` (non-string `text`, no inject) · `voice_truncated` (ok, clipboard wrote the prefix) · `ax_denied_clipboard_ok` · `append`/`replace` |
 | `classify` | `kind`, `reason`, `phase` | `classify_ack` — telemetry only, **no inject** |
-| `stt` | `action` start/stop/status | `stt_status` / `stt_final` — on-device only |
+| `stt` | `action` start/stop/status | `stt_status` / `stt_final` — on-device only (`no_on_device_stt` if Whisper missing and Apple on-device unsupported) |
 
 Unknown JSON `type` is ignored. Non-object / non-string `type` is ignored.
 
@@ -36,7 +36,7 @@ Unknown JSON `type` is ignored. Non-object / non-string `type` is ignored.
 |---|---|
 | `GET /` | Phone page (bundled `index.html`) |
 | `GET /health` | Unauthenticated JSON via `JSONText.encode` (local). Keys include `proto`. `ip`/`ips`/`ifaces` stay for LAN debug; CORS echo is the recon control. No-home-path / no-hostname promise is **this route only** — see `docs/SECURITY.md` |
-| `POST /stt` | ≤ 10 MB audio. Cycle 7 wired `HTTPPostOrigin.allows` locally (403 `origin_rejected`). Remote stub unrestored. |
+| `POST /stt` | ≤ 10 MB audio. Cycle 7 wired `HTTPPostOrigin.allows` locally (403 `origin_rejected`). Cycle 12 refuses `no_on_device_stt` when Whisper is missing and Apple on-device is unsupported. Remote stub unrestored. |
 | `POST /drop` | ≤ 50 MB file → pasteboard + optional Cmd+V (`autoPaste` default true). Same local Origin check as `/stt`. |
 
 ### `GET /health` keys (smoke-all contract + `proto`)
@@ -44,6 +44,20 @@ Unknown JSON `type` is ignored. Non-object / non-string `type` is ignored.
 `ok` `service` `port` `httpPort` `httpsPort` `https` `httpsUrl` `httpUrl` `httpsError` `ip` `ips` `ifaces` `routeIface` `mdns` `html` `htmlPath` `htmlSource` `htmlRev` `binaryPath` `injectQueue` `ax` `stt` `sttFile` `whisper` `whisperReady` `whisperCached` `whisperModel` `lastKey` `lastKeyReason` `injectCount` `lastKeyOk` `lastKeyAt` `lastKeyCount` `lastDropOk` `lastDropReason` `lastDropKind` `lastDropAt` `dropCount` `lastGesture` `lastGestureReason` `lastGestureAt` `lastGesturePhase` `gestureCount` `clients` `ts` `proto`.
 
 Never hostname, home path, SSID, user, or payload text. `binaryPath` is `MagicPad.app` only.
+
+## `stt_final` reasons
+
+| `reason` | Meaning |
+|---|---|
+| `no_on_device_stt` | Whisper weights missing (`!isReady && !isCached`) and Apple `supportsOnDeviceRecognition` is false. Cloud Apple Speech is not a fallback. |
+| `mic_denied` | Mac microphone permission denied |
+| `speech_denied` / `speech_restricted` / `speech_auth_required` | Speech authorization |
+| `empty` / `empty_body` / `too_large` | No audio, or POST body over 10 MB |
+| `recognizer_unavailable` / `no_input_device` | Apple recognizer or input hardware missing |
+| `whisper_fail` / `whisper_write` | Whisper path failed before a legal Apple on-device fallback |
+| `cancelled` / `timeout` / `no_speech` | Session ended without a transcript |
+
+`engine` is `whisper`, `apple`, or `none`. `onDevice` is always true on success.
 
 ## Limits (`MagicPadCore.ProtocolLimits` / `scripts/magicpad_proto.py`)
 
