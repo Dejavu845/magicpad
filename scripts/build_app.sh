@@ -12,7 +12,6 @@ set -e
 APP_NAME="MagicPad"
 APP_DISPLAY_NAME="MagicPad"
 BUNDLE_ID="app.magicpad.server"
-VERSION="0.1.0"
 HTML_ONLY=0
 for arg in "$@"; do
     case "$arg" in
@@ -25,7 +24,12 @@ for arg in "$@"; do
 done
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SOURCE_BINARY="$PROJECT_ROOT/MagicPadServer/.build/arm64-apple-macosx/debug/MagicPadServer"
+VERSION_SWIFT="$PROJECT_ROOT/MagicPadServer/Sources/MagicPadServer/Version.swift"
+VERSION="$(grep -oE '"[0-9]+\.[0-9]+\.[0-9]+"' "$VERSION_SWIFT" | head -n1 | tr -d '"')"
+if [ -z "$VERSION" ]; then
+    echo "❌ empty VERSION from $VERSION_SWIFT"
+    exit 1
+fi
 APP_DIR="$PROJECT_ROOT/build/$APP_NAME.app"
 INDEX_SRC="$PROJECT_ROOT/MagicPadClient/index.html"
 
@@ -48,6 +52,11 @@ if [ "$HTML_ONLY" = "1" ]; then
     exit 0
 fi
 
+if ! command -v swift >/dev/null 2>&1; then
+    echo "❌ swift not on PATH — full pack needs SwiftPM"
+    exit 1
+fi
+SOURCE_BINARY="$(cd "$PROJECT_ROOT/MagicPadServer" && swift build --show-bin-path)/MagicPadServer"
 if [ ! -f "$SOURCE_BINARY" ]; then
     echo "❌ source binary not found: $SOURCE_BINARY"
     echo "   run 'swift build' in MagicPadServer/ first"
