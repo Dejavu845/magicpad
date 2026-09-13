@@ -65,7 +65,7 @@ A pairing token on QR / `hello` is optional and default-off. Never put a token i
 
 ### Pairing hatch (Cycle 20)
 
-Env `MAGICPAD_PAIRING_TOKEN` empty → off (current product). When set, `hello` must send `pair` equal to that value or the ack is `hello_ack{ok:false, reason:pairing_rejected}`. The token is never a `/health` key. Local `WebSocketServer` hello wire; remote stub unrestored.
+Env `MAGICPAD_PAIRING_TOKEN` empty → off (current product). When set, `hello` must send `pair` equal to that value or the ack is `hello_ack{ok:false, reason:pairing_rejected}`. The token is never a `/health` key. Cycle 29: `PairingToken.healthAllowsKey` / `health_allows_key`. Local `WebSocketServer` hello wire; remote stub unrestored.
 
 ### QR never embeds the token (Cycle 21)
 
@@ -128,7 +128,8 @@ Inbound: `type=stt`, `action` ∈ `start`/`begin`/`on` · `stop`/`end`/`off` · 
 
 Wiring notes: `docs/CYCLE4-WIRING.md`. HTTP Origin: `docs/CYCLE3-HTTP-ORIGIN.md`.
 
-CORS: curl without `Origin` still sees `Access-Control-Allow-Origin: *` (smoke-all). `CORSPolicy.accessControl` echoes an allowlisted Origin (`needsVary == true`) and omits ACAO for evil Origins. Echo-allowlist does **not** stop a CORS-simple `no-cors` POST write — that is `HTTPPostOrigin.allows` in local `beginHTTPPost`.
+CORS: curl without `
+Origin` still sees `Access-Control-Allow-Origin: *` (smoke-all). `CORSPolicy.accessControl` echoes an allowlisted Origin (`needsVary == true`) and omits ACAO for evil Origins. Echo-allowlist does **not** stop a CORS-simple `no-cors` POST write — that is `HTTPPostOrigin.allows` in local `beginHTTPPost`.
 
 ## htmlRev
 
