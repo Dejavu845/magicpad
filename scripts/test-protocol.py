@@ -60,3 +60,20 @@ from magicpad_proto import (  # noqa: E402
     sanitize_filename,
     unmask_frame,
 )
+
+
+class Frame13Tests(unittest.TestCase):
+    def test_length_and_le_dx_neg1(self):
+        b = bytearray(frame13(1, dx=-1, dy=2, buttons=1))
+        struct.pack_into("<I", b, 7, 0xA1B2C3D4)
+        struct.pack_into("<H", b, 11, 0xBEEF)
+        data = bytes(b)
+        self.assertEqual(len(data), 13)
+        self.assertEqual(data[1:3], b"\xff\xff")  # dx=-1 little-endian
+        d = decode_frame13(data)
+        self.assertEqual(d["phase"], 1)
+        self.assertEqual(d["dx"], -1)
+        self.assertEqual(d["dy"], 2)
+        self.assertEqual(d["buttons"], 1)
+        self.assertEqual(d["t_ms"], 0xA1B2C3D4)
+        self.assertEqual(d["seq"], 0xBEEF)
