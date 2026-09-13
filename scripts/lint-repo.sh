@@ -45,10 +45,10 @@ else
 fi
 
 # --- 4b. Cycle 21/23 locks (small files; do not grow test-protocol.py) ---
-if python3 -m unittest scripts/test_cycle21_qr.py scripts/test_cycle23_stt.py -q; then
-  pass "unittest scripts/test_cycle21_qr.py scripts/test_cycle23_stt.py"
+if python3 -m unittest scripts/test_cycle21_qr.py scripts/test_cycle23_stt.py scripts/test_cycle24_stt_lang.py -q; then
+  pass "unittest cycle 21/23/24 small files"
 else
-  fail_step "unittest scripts/test_cycle21_qr.py scripts/test_cycle23_stt.py"
+  fail_step "unittest cycle 21/23/24 small files"
 fi
 
 # --- 5. tracked forbidden files ---
