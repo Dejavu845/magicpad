@@ -22,6 +22,11 @@ import subprocess
 import re
 from pathlib import Path
 
+_SCRIPTS = Path(__file__).resolve().parent
+if str(_SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS))
+from magicpad_proto import PAIRING_ENV, qr_url_is_safe  # noqa: E402
+
 
 SKIP_PREFIXES = ("lo", "awdl", "llw", "utun", "bridge", "veth", "docker", "vmnet", "ap")
 
@@ -281,8 +286,42 @@ def refuse_baked_home_ip() -> None:
             sys.exit(1)
 
 
+def refuse_pairing_token_in_qr_sources() -> None:
+    """Cycle 21: QR builders must never interpolate pair= or the env name."""
+    root = Path(__file__).resolve().parent.parent
+    paths = [
+        root / "MagicPadServer/Sources/MagicPadServer/QRImageLoader.swift",
+        root / "MagicPadServer/Sources/MagicPadServer/InstallEnvironment.swift",
+        root / "MagicPadClient/index.html",
+    ]
+    for path in paths:
+        if not path.is_file():
+            continue
+        body = path.read_text(encoding="utf-8")
+        if "pair=" in body.lower():
+            print(f"❌ {path.name} must never embed pair= in a QR URL", file=sys.stderr)
+            sys.exit(1)
+        if PAIRING_ENV in body:
+            print(
+                f"❌ {path.name} must never read {PAIRING_ENV} into a QR",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+
+def build_qr_url(scheme: str, ip: str, port: int, auto: bool = False) -> str:
+    """HTTP/HTTPS URL encoded in the PNG. Never a pairing token."""
+    url = f"{scheme}://{ip}:{port}/"
+    if auto:
+        url += f"?auto=1&host={ip}"
+    if not qr_url_is_safe(url):
+        raise SystemExit("QR URL must never embed a pairing token (Cycle 21)")
+    return url
+
+
 def main():
     refuse_baked_home_ip()
+    refuse_pairing_token_in_qr_sources()
     parser = argparse.ArgumentParser()
     parser.add_argument("ip", nargs="?", help="Mac 局域网 IP（默认：默认路由网卡）")
     parser.add_argument("--port", type=int, default=None, help="覆盖端口")
@@ -291,7 +330,11 @@ def main():
     parser.add_argument("--output", help="输出 PNG 路径")
     parser.add_argument("--auto", action="store_true", help="QR 内容带 ?auto=1(iOS 端会自动连)")
     parser.add_argument("--print-only", action="store_true", help="只打印 URL，不写 PNG（运行时菜单仍不读此 IP）")
+    parser.add_argument("--pair", default=None, help=argparse.SUPPRESS)
     args = parser.parse_args()
+    if args.pair is not None:
+        print("❌ QR must never embed a pairing token (Cycle 21)", file=sys.stderr)
+        sys.exit(1)
 
     if args.ip:
         ip, iface = args.ip, "cli"
@@ -310,9 +353,7 @@ def main():
         scheme, port = "http", args.port or 7878
         print("ℹ️  主 QR 用 HTTP :7878（新设备/朋友先能打开；录音再上 HTTPS）")
 
-    url = f"{scheme}://{ip}:{port}/"
-    if args.auto:
-        url += f"?auto=1&host={ip}"
+    url = build_qr_url(scheme, ip, port, auto=args.auto)
     print(f"🔗 QR URL: {url}")
     if scheme != "http" and not args.https:
         print("❌ main QR must be http (friends need :7878)", file=sys.stderr)
