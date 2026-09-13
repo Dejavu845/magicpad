@@ -203,7 +203,7 @@ fi
 # Floors: WebSocketServer.swift >=20kB/500 lines, index.html >=100kB,
 # smoke-all.sh >=20kB/500 lines, KeyProtocol.swift >=5kB.
 # Negative proof: python3 scripts/repo_integrity.py --prove-stub  (temp 140-byte stub must FAIL)
-if python3 scripts.repo_integrity.py; then
+if python3 scripts/repo_integrity.py; then
   pass "repo integrity floors"
 else
   fail_step "repo integrity floors"
