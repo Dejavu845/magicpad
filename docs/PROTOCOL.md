@@ -39,7 +39,21 @@ Unknown JSON `type` is ignored. Non-object / non-string `type` is ignored.
 | `POST /stt` | ≤ 10 MB audio. **No Origin check yet** (Cycle 3: `docs/CYCLE3-HTTP-ORIGIN.md`) |
 | `POST /drop` | ≤ 50 MB file → pasteboard + optional Cmd+V (`autoPaste` default true). **No Origin check yet** — MP-01 did not close this door |
 
-CORS: curl without `Origin` still sees `Access-Control-Allow-Origin: *` (smoke-all). Echo-allowlist (old MP-04) does **not** stop a CORS-simple `no-cors` POST write. The HTTP Origin check is leftover Cycle 3, not a CORS header change.
+## Limits (`MagicPadCore.ProtocolLimits` / `scripts/magicpad_proto.py`)
+
+| Constant | Value | Where |
+|---|---|---|
+| `maxFrameBytes` | 1 048 576 (1 MiB) | WS `parseFrame` — Cycle 4 helper, **not wired** until `WebSocketServer.swift` is restored |
+| `maxHeaderBytes` | 16 384 | pre-handshake header — same |
+| `maxTypeChars` | 2 000 | `type` / `text` JSON |
+| `maxVoiceChars` | 20 000 | `voice` JSON (pasteboard) |
+| `proto` | 1 | additive on `hello` / `hello_ack` / `/health` (MP-11 leftover) |
+| `requiredWebSocketVersion` | `13` | handshake 426 if missing — **not wired**; server does not read `Sec-WebSocket-Version` today |
+| allowed opcodes | 0x0 0x1 0x2 0x8 0x9 0xA | close 1003 on others — **not wired**. `0x0` is listed so a later insert does not disconnect fragmented browsers; reassembly is not implemented |
+
+Wiring notes: `docs/CYCLE4-WIRING.md`. HTTP Origin: `docs/CYCLE3-HTTP-ORIGIN.md`.
+
+CORS: curl without `Origin` still sees `Access-Control-Allow-Origin: *` (smoke-all). `CORSPolicy.accessControl` echoes an allowlisted Origin (`needsVary == true`) and omits ACAO for evil Origins. Echo-allowlist does **not** stop a CORS-simple `no-cors` POST write. The HTTP Origin check is leftover Cycle 3, not a CORS header change.
 
 ## htmlRev
 

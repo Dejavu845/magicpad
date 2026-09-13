@@ -40,7 +40,7 @@ Exact-set host match, no IPv4/IPv6 normalization. These are **rejected on purpos
 
 ## Cycle 4 helpers (not yet on the live 62 KB server file)
 
-`HTMLEscape.escape` + `Content-Security-Policy: default-src 'none'` + `X-Content-Type-Options: nosniff` are the intended fix for the reflected `fallbackHTML` sink (Opus H1). `CORSPolicy` only changes who may *read* replies. Insert both per `docs/CYCLE4-WIRING.md` after a human restore of `WebSocketServer.swift`.
+`HTMLEscape.escape` + `Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'` + `X-Content-Type-Options: nosniff` are the intended fix for the reflected `fallbackHTML` sink (Opus H1). A 503 that lists `index.html` candidates must use `sourceLabel()`, not filesystem paths. `CORSPolicy` only changes who may *read* replies (`needsVary` travels with the ACAO value). Insert both per `docs/CYCLE4-WIRING.md` after a human restore of `WebSocketServer.swift`.
 
 ## Reporting
 

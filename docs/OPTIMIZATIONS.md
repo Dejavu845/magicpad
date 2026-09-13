@@ -29,7 +29,7 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 | ID | Pri | Linux | What landed |
 |---|---|---|---|
 | MP-02 | P0 | WRITE | `ProtocolLimits` + Python mirror. **Not wired** into `parseFrame` / handshake (`docs/CYCLE4-WIRING.md`). |
-| MP-04 echo | P0 | WRITE | `CORSPolicy.accessControlAllowOrigin` — echo allowlist / omit / `*`. **Not the write control.** |
+| MP-04 echo | P0 | WRITE | `CORSPolicy.accessControl` — echo allowlist / omit / `*` plus `needsVary`. **Not the write control.** |
 | H1 helper | P0 | WRITE | `HTMLEscape.escape` + CSP/nosniff constants for `fallbackHTML`. |
 | MP-17 seed | P1 | WRITE | `JSONText.encode` (sorted keys). |
 | MP-18 seed | P2 | WRITE | `LANAddress.isPrivate` + `Filenames.sanitize` + Python mirrors. |
@@ -41,6 +41,18 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 | MP-28 parity | P1 | YES | Fixture comment + `test_every_fixture_origin_appears_in_swift`; added `localhost-suffix` and four empty query/fragment/userinfo rows to the Swift table |
 | MP-28 mirror | P1 | YES | Python `origin_parse` rejects raw `?`/`#` and `username is not None` so empty query/fragment/userinfo match Swift |
 | MP-28 docs | P1 | YES | `SECURITY.md` present tense + decode-then-compare note; `HTTPPostOrigin.swift` states the helper is not yet called |
+
+## Cycle 6 — Opus C4 follow-up
+
+| ID | Pri | Linux | What landed |
+|---|---|---|---|
+| C4-B2/B3 | P0 | YES | `docs/CYCLE4-WIRING.md`: do not `closeInternal` under `parseFrame`'s lock; add `sendCloseFrame(code:)`; `0x0` listed, reassembly not in the insert |
+| C4-H2 | P0 | YES | 503 must use `sourceLabel()`, not `indexHTMLCandidates()` paths (home-path rule) |
+| C4-H3 | P1 | YES | `test-protocol.py` reads `ProtocolLimits.swift` / `HTMLEscape.swift`; `lan-vectors.json` + `filename-vectors.json` |
+| C4-M1/M3 | P1 | WRITE | `LANAddress` / Python require four octets and `0...255`; `LANDetector.isPrivate` delegates |
+| C4-M2/N2 | P1 | WRITE | Unicode filenames; `\\` is a separator; truncate keeps suffix; `FileDropPasteboard` calls `Filenames.sanitize` |
+| C4-M4/M6 | P1 | WRITE | `ProtocolLimits` type/voice caps read `KeyProtocol`; header says 1 MiB / 16 KiB are new |
+| C4-M5/M7/M8 | P1 | YES | PROTOCOL opcode/version caveats; CORS `needsVary`; CSP `style-src 'unsafe-inline'` |
 
 ## Leftover P0
 
