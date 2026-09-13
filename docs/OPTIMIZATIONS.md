@@ -77,7 +77,7 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 | C7-M3 | P1 | YES | Core file headers no longer say the Cycle 7 wires are unwired. |
 | C7-M4 | P1 | YES | Fixture gate anchors on quoted literals; expected value must sit outside the input literal. |
 | C7-M5 | P1 | YES | `smoke-all.sh` POST /drop Origin evil → 403 `origin_rejected`; loopback → 200. Grep-locked. |
-| C7-M6 | P1 | WRITE | Both languages require 1–3 ASCII digits (reject `+` / `_` / Arabic-Indic / 4-digit octets). |
+| C7-M6 | P1 | WRITE | Both languages require 1–3 ASCII min digits (reject `+` / `_` / Arabic-Indic / 4-digit octets). |
 
 ## Cycle 9 — Opus C7 nits (local server; remote stub unrestored)
 
@@ -127,6 +127,12 @@ Remote PR still has the 140-byte stub. Human `git push` required. Do not MCP-upl
 | MP-15 | P1 | YES | Single visually-hidden `<h1>`, voice `<h2>`, tablist/tab/tabpanel, pad `role="application"`, `:focus-visible`, `#voiceStatus` live, statusBar `aria-label`. `check-html.py` those checks are FAIL. `index.html` local-only (do not MCP-upload). |
 | MP-16 | P1 | YES | Debounced `syncLayoutSoon` (80 ms) on `resize` / `visualViewport.resize`. 44/48 px min-size guard; kb-open draft bar exempt. |
 | MP-19 | P2 | YES | `AppVersion.string` in `Version.swift`; `build_app.sh` greps it and uses `swift build --show-bin-path`. |
+
+## Cycle 28 — QR LAN uses Core RFC1918 gate
+
+| ID | Linux | What |
+|---|---|---|
+| MP-18 | YES | `generate_qr.is_private` delegates to `is_private_ipv4` / `LANAddress`. Rejects `+10…` / `10.a…` / overlong octets. Tests in `scripts/test_cycle28_lan.py`. |
 
 ## Cycle 27 — WS inbound type allowlist in Core
 
@@ -233,7 +239,7 @@ None of the Cycle 7 wires exist on the GitHub stub. Local leftover:
 
 | ID | Next step |
 |---|---|
-| MP-18 | Cycle 23: `STTAction`. Cycle 26: `BinaryFrame`. Cycle 27: `WSType`. Remaining: LAN shared fixtures |
+| MP-18 | Cycle 23: `STTAction`. Cycle 26: `BinaryFrame`. Cycle 27: `WSType`. Cycle 28: QR `is_private` == Core RFC1918. Remaining: shared LAN fixture table |
 | MP-19 | Cycle 14: `Version.swift` + `swift build --show-bin-path`. |
 | MP-20 | Cycle 16: menu/About diagnostics (`proto` / htmlRev / clients). Cert dir button already existed. |
 | MP-21 | Playwright 4-viewport layout on Linux |
