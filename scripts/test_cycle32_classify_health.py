@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Cycle 29: pairing token / hello.pair must never be GET /health keys."""
+"""Cycle 32: classify is WS telemetry — never a GET /health key."""
+
 from __future__ import annotations
 
 import os
@@ -11,9 +12,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 from magicpad_proto import (  # noqa: E402
+    CLASSIFY_INJECTS,
+    CLASSIFY_IS_HEALTH_KEY,
     FORBIDDEN_HEALTH_KEYS,
-    PAIRING_ENV,
-    PAIRING_HELLO_FIELD,
     health_allows_key,
 )
 
@@ -27,25 +28,34 @@ def _health_keys_blob() -> str:
     return proto[start:nxt]
 
 
-class Cycle29HealthPairTests(unittest.TestCase):
-    def test_python_forbids_pair_keys(self):
-        self.assertFalse(health_allows_key("pair"))
-        self.assertFalse(health_allows_key(PAIRING_ENV))
+class Cycle32ClassifyHealthTests(unittest.TestCase):
+    def test_classify_is_not_a_health_key(self) -> None:
+        self.assertFalse(CLASSIFY_INJECTS)
+        self.assertFalse(CLASSIFY_IS_HEALTH_KEY)
+        self.assertFalse(health_allows_key("classify"))
+        self.assertIn("classify", FORBIDDEN_HEALTH_KEYS)
         self.assertTrue(health_allows_key("proto"))
         self.assertTrue(health_allows_key("ok"))
-        self.assertTrue(
-            {PAIRING_HELLO_FIELD, PAIRING_ENV} <= set(FORBIDDEN_HEALTH_KEYS)
-        )
 
-    def test_protocol_health_table_omits_pair(self):
+    def test_protocol_health_keys_line_omits_classify(self) -> None:
         blob = _health_keys_blob()
         keys = next(ln for ln in blob.splitlines() if ln.startswith("`ok`"))
+        self.assertNotIn("classify", keys)
         self.assertIn("`proto`", keys)
-        self.assertNotIn("`pair`", keys)
-        self.assertNotIn(PAIRING_ENV, keys)
-        self.assertIn("never", blob.lower())
 
-    def test_swift_core_table(self):
+    def test_swift_classify_flag(self) -> None:
+        path = Path(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Sources",
+            "MagicPadCore",
+            "Classify.swift",
+        )
+        text = path.read_text(encoding="utf-8")
+        self.assertIn("public static let isHealthKey = false", text)
+        self.assertIn("public static let injects = false", text)
+
+    def test_pairing_token_forbids_classify(self) -> None:
         path = Path(
             os.path.dirname(HERE),
             "MagicPadServer",
@@ -54,11 +64,9 @@ class Cycle29HealthPairTests(unittest.TestCase):
             "PairingToken.swift",
         )
         text = path.read_text(encoding="utf-8")
-        self.assertIn("forbiddenHealthKeys", text)
-        self.assertIn("healthAllowsKey", text)
-        self.assertIn(PAIRING_ENV, text)
+        self.assertIn("Classify.jsonType", text)
 
-    def test_local_health_json_omits_pair(self):
+    def test_local_health_json_omits_classify(self) -> None:
         ws = Path(
             os.path.dirname(HERE),
             "MagicPadServer",
@@ -71,9 +79,8 @@ class Cycle29HealthPairTests(unittest.TestCase):
         start = ws.find("func healthJSON")
         end = ws.find("func fallbackHTML", start)
         chunk = ws[start:end]
+        self.assertNotIn('"classify"', chunk)
         self.assertIn('"proto"', chunk)
-        self.assertNotIn('"pair"', chunk)
-        self.assertNotIn(PAIRING_ENV, chunk)
 
 
 if __name__ == "__main__":

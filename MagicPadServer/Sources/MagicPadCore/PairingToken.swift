@@ -10,7 +10,7 @@ public enum PairingToken {
     public static let helloField = "pair"
     public static let rejectedReason = "pairing_rejected"
     /// Cycle 29: these must never be GET /health keys (hello-only hatch).
-    public static let forbiddenHealthKeys: Set<String> = [helloField, envName]
+    public static let forbiddenHealthKeys: Set<String> = [helloField, envName, Classify.jsonType]
 
     public static func healthAllowsKey(_ key: String) -> Bool {
         !forbiddenHealthKeys.contains(key)
