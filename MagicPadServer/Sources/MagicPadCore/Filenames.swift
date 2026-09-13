@@ -13,6 +13,8 @@ public enum Filenames {
         name = name.replacingOccurrences(of: "\\", with: "/")
         while name.hasSuffix("/") { name.removeLast() }
         name = (name as NSString).lastPathComponent
+        // APFS often hands NFD. Compose first so `e` + U+0301 matches `é`.
+        name = name.precomposedStringWithCanonicalMapping
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "._- ()[]"))
         name = String(name.unicodeScalars.map { allowed.contains($0) ? Character($0) : "_" })
         if name.count > maxLength {

@@ -276,9 +276,11 @@ def is_private_ipv4(ip: str) -> bool:
 
 def sanitize_filename(raw: str) -> str:
     import os
+    import unicodedata
 
     name = raw.strip().replace("\\", "/").rstrip("/")
     name = os.path.basename(name)
+    name = unicodedata.normalize("NFC", name)
     name = "".join(ch if (ch.isalnum() or ch in "._- ()[]") else "_" for ch in name)
     if len(name) > 120:
         root, ext = os.path.splitext(name)

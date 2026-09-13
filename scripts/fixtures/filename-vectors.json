@@ -1,14 +1,56 @@
 {
   "comment": "Shared Filenames.sanitize / sanitize_filename vectors. test-protocol.py asserts every input appears in FilenamesTests.swift. Unicode letters stay.",
   "vectors": [
-    {"id": "traversal", "input": "../../etc/passwd", "out": "passwd"},
-    {"id": "angles", "input": "a<>b.txt", "out": "a__b.txt"},
-    {"id": "dot", "input": ".", "out": "magicpad-file.bin"},
-    {"id": "dotdot", "input": "..", "out": "magicpad-file.bin"},
-    {"id": "cjk", "input": "文件.txt", "out": "文件.txt"},
-    {"id": "accent", "input": "résumé.pdf", "out": "résumé.pdf"},
-    {"id": "trailing-slash", "input": "foo/", "out": "foo"},
-    {"id": "backslash-traversal", "input": "..\\..\\etc\\passwd", "out": "passwd"},
-    {"id": "ellipsis", "input": "...", "out": "magicpad-file.bin"}
+    {
+      "id": "traversal",
+      "input": "../../etc/passwd",
+      "out": "passwd"
+    },
+    {
+      "id": "angles",
+      "input": "a<>b.txt",
+      "out": "a__b.txt"
+    },
+    {
+      "id": "dot",
+      "input": ".",
+      "out": "magicpad-file.bin"
+    },
+    {
+      "id": "dotdot",
+      "input": "..",
+      "out": "magicpad-file.bin"
+    },
+    {
+      "id": "cjk",
+      "input": "文件.txt",
+      "out": "文件.txt"
+    },
+    {
+      "id": "accent",
+      "input": "résumé.pdf",
+      "out": "résumé.pdf"
+    },
+    {
+      "id": "trailing-slash",
+      "input": "foo/",
+      "out": "foo"
+    },
+    {
+      "id": "backslash-traversal",
+      "input": "..\\..\\etc\\passwd",
+      "out": "passwd"
+    },
+    {
+      "id": "ellipsis",
+      "input": "...",
+      "out": "magicpad-file.bin"
+    },
+    {
+      "id": "nfd-e-acute",
+      "input": "é.txt",
+      "out": "é.txt",
+      "note": "APFS NFD; NFC before filter"
+    }
   ]
 }

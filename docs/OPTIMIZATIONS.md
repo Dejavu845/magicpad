@@ -66,6 +66,7 @@ Minimal docs shipped with those items: `docs/SECURITY.md` (CSWSH / Origin; HTTP 
 | C6-M1 | P0 | YES | Wiring doc: handle `pendingCloseCode` **after** the `while let parseFrame` loop. |
 | C6-M2 | P1 | YES | Fixture rows must share a live Swift assert line with the expected True/False or output. |
 | C6-M3 | P1 | YES | Python `is_private_ipv4` rejects non-ASCII / non-digit octets (`int("1_0")` ≠ Swift `Int`). |
+| C6-M4 | P1 | YES | NFC before the filename filter (APFS NFD `é`). Fixture `nfd-e-acute`. |
 
 Remote PR still has the 140-byte stub. Human `git push` required.
 
