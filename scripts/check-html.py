@@ -136,12 +136,17 @@ def main(argv: list[str]) -> int:
     if missing_layout:
         fails.append("missing layout tokens: " + ",".join(missing_layout))
 
-    # WARN until MP-15
     h1_out = re.findall(r"<h1\b", re.sub(r"<noscript>.*?</noscript>", "", raw, flags=re.S | re.I), re.I)
     if len(h1_out) != 1:
-        warns.append(f"heading-count <h1> outside noscript = {len(h1_out)} (want 1 after MP-15)")
+        fails.append(f"heading-count <h1> outside noscript = {len(h1_out)} (want 1)")
     if ":focus-visible" not in raw:
-        warns.append(":focus-visible missing (WARN until MP-15)")
+        fails.append(":focus-visible missing")
+    if 'role="tablist"' not in raw:
+        fails.append('missing role="tablist"')
+    if 'role="application"' not in raw:
+        fails.append('missing pad role="application"')
+    if "syncLayoutSoon" not in raw:
+        fails.append("missing debounced syncLayoutSoon")
 
     node_ok = "skip"
     scripts = re.findall(r"<script>(.*?)</script>", raw, re.S | re.I)
