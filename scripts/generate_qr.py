@@ -25,27 +25,15 @@ from pathlib import Path
 _SCRIPTS = Path(__file__).resolve().parent
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
-from magicpad_proto import PAIRING_ENV, qr_url_is_safe  # noqa: E402
+from magicpad_proto import PAIRING_ENV, is_private_ipv4, qr_url_is_safe  # noqa: E402
 
 
 SKIP_PREFIXES = ("lo", "awdl", "llw", "utun", "bridge", "veth", "docker", "vmnet", "ap")
 
 
 def is_private(ip: str) -> bool:
-    parts = ip.split(".")
-    if len(parts) != 4:
-        return False
-    try:
-        a, b = int(parts[0]), int(parts[1])
-    except ValueError:
-        return False
-    if a == 192 and b == 168:
-        return True
-    if a == 10:
-        return True
-    if a == 172 and 16 <= b <= 31:
-        return True
-    return False
+    """Cycle 28: same RFC1918 gate as Core LANAddress / is_private_ipv4."""
+    return is_private_ipv4(ip)
 
 
 def default_route_interface() -> str | None:
