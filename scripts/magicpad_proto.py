@@ -427,6 +427,7 @@ WS_TYPES = frozenset(
 
 
 CLASSIFY_INJECTS = False
+CLASSIFY_IS_HEALTH_KEY = False
 
 
 def parse_classify_kind(raw: str | None) -> str | None:
@@ -473,7 +474,7 @@ def parse_stt_action(raw: str | None) -> str | None:
 PAIRING_ENV = "MAGICPAD_PAIRING_TOKEN"
 PAIRING_HELLO_FIELD = "pair"
 PAIRING_REJECTED = "pairing_rejected"
-FORBIDDEN_HEALTH_KEYS = frozenset({PAIRING_HELLO_FIELD, PAIRING_ENV})
+FORBIDDEN_HEALTH_KEYS = frozenset({PAIRING_HELLO_FIELD, PAIRING_ENV, "classify"})
 
 
 def health_allows_key(key: str) -> bool:
