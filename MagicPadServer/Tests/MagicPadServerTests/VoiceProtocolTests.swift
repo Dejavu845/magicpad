@@ -13,9 +13,10 @@ final class VoiceProtocolTests: XCTestCase {
     }
 
     func testNonStringText() {
-        XCTAssertEqual(KeyProtocol.parseVoice(from: ["text": 123]).reason, "empty")
-        XCTAssertEqual(KeyProtocol.parseVoice(from: ["text": true]).reason, "empty")
-        XCTAssertEqual(KeyProtocol.parseVoice(from: ["text": ["a"]]).reason, "empty")
+        XCTAssertEqual(KeyProtocol.parseVoice(from: ["text": 123]).reason, "bad_voice")
+        XCTAssertEqual(KeyProtocol.parseVoice(from: ["text": true]).reason, "bad_voice")
+        XCTAssertEqual(KeyProtocol.parseVoice(from: ["text": ["a"]]).reason, "bad_voice")
+        XCTAssertFalse(KeyProtocol.parseVoice(from: ["text": 123]).isEmpty)
     }
 
     func testExactMaxNotTruncated() {

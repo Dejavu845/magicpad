@@ -8,6 +8,9 @@ public enum OriginPolicy {
     /// Hosts always accepted besides `lanIPs` (loopback).
     public static let loopbackHosts: Set<String> = ["127.0.0.1", "localhost", "::1"]
 
+    /// Host extraction for **reject logs only**. Does not apply the scheme
+    /// allowlist (`file://127.0.0.1` yields a host). Never use as an access
+    /// decision — call `isAllowed` instead.
     public static func host(fromOrigin origin: String?) -> String? {
         guard let origin else { return nil }
         var s = origin.trimmingCharacters(in: .whitespacesAndNewlines)
