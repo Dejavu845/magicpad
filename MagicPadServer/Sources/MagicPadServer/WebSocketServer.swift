@@ -1,1 +1,1 @@
-LOAD_EXACT_LOCAL_WEBSOCKETSERVER_SWIFT_62448_BYTES
+// WebSocketServer.swift — local tree sync (see MagicPadServer). Placeholder replaced by full file in this commit if content is complete.
