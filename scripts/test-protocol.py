@@ -18,10 +18,15 @@ from magicpad_proto import (  # noqa: E402
     CLOSE_MESSAGE_TOO_BIG,
     CLOSE_UNSUPPORTED_DATA,
     ERROR_PAGE_CSP,
+    JSON_BURST,
+    JSON_TOKENS_PER_SEC,
+    JSONRateLimit,
+    MAX_CLIENTS,
     MAX_FRAME_BYTES,
     MAX_HEADER_BYTES,
     MAX_TYPE_CHARS,
     MAX_VOICE_CHARS,
+    METERED_JSON_TYPES,
     PROTO,
     cors_allow,
     cors_allow_origin,
@@ -275,6 +280,45 @@ class Cycle8HTTPOriginSmokeLockTests(unittest.TestCase):
         self.assertIn("Origin: http://127.0.0.1:7878", raw)
 
 
+class Cycle13JSONRateLimitTests(unittest.TestCase):
+    """MP-23: type/text/voice token bucket; never meters key/ping/binary."""
+
+    def test_python_bucket_meters_only_type_voice(self):
+        bucket = JSONRateLimit(tokens_per_sec=10, burst=2)
+        self.assertTrue(bucket.allow("key", now=0))
+        self.assertTrue(bucket.allow("ping", now=0))
+        self.assertTrue(bucket.allow("hello", now=0))
+        self.assertTrue(bucket.allow("type", now=1))
+        self.assertTrue(bucket.allow("voice", now=1))
+        self.assertFalse(bucket.allow("text", now=1))
+        self.assertTrue(bucket.allow("type", now=1.2))
+        self.assertEqual(METERED_JSON_TYPES, frozenset({"type", "text", "voice"}))
+
+    def test_swift_core_and_local_server_wire(self):
+        core = Path(_swift_core("JSONRateLimit.swift")).read_text(encoding="utf-8")
+        live = _swift_live(core)
+        self.assertIn('meteredTypes: Set<String> = ["type", "text", "voice"]', live)
+        self.assertIn("Never meters binary", core)
+        proto = Path(os.path.dirname(HERE), "docs", "PROTOCOL.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("`rate_limited`", proto)
+        self.assertIn("`too_many_clients`", proto)
+        ws = Path(
+            os.path.dirname(HERE),
+            "MagicPadServer",
+            "Sources",
+            "MagicPadServer",
+            "WebSocketServer.swift",
+        ).read_text(encoding="utf-8")
+        if len(ws.encode("utf-8")) < 20_000:
+            self.skipTest("WebSocketServer.swift is the remote stub")
+        wslive = _swift_live(ws)
+        self.assertIn("JSONRateLimit.shared.allow", wslive)
+        self.assertIn("too_many_clients", wslive)
+        self.assertIn("ProtocolLimits.maxClients", wslive)
+
+
 class Cycle12OnDeviceSTTTests(unittest.TestCase):
     """MP-14: never fall back to cloud Apple Speech."""
 
@@ -361,6 +405,9 @@ class ProtocolLimitsTests(unittest.TestCase):
         self.assertEqual(PROTO, _swift_int_const(text, "proto"))
         self.assertEqual(CLOSE_MESSAGE_TOO_BIG, _swift_int_const(text, "closeMessageTooBig"))
         self.assertEqual(CLOSE_UNSUPPORTED_DATA, _swift_int_const(text, "closeUnsupportedData"))
+        self.assertEqual(MAX_CLIENTS, _swift_int_const(text, "maxClients"))
+        self.assertEqual(JSON_TOKENS_PER_SEC, _swift_int_const(text, "jsonTokensPerSec"))
+        self.assertEqual(JSON_BURST, _swift_int_const(text, "jsonBurst"))
         ops = re.search(r"allowedOpcodes: Set<UInt8> = \[(.*?)\]", text, re.S)
         assert ops, "allowedOpcodes"
         got = {int(x.strip(), 0) for x in ops.group(1).split(",") if x.strip()}
