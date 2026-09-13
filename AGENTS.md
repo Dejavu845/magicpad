@@ -33,4 +33,6 @@ build/              gitignored .app output
 - JSON: `voice` / `stt` / `type` / `key`
 - HTTP `:7878` for the pad; HTTPS `:7879` for getUserMedia dictation
 
-See `docs/architecture.md` and `README.md`.
+See `docs/architecture.md`, `docs/ENGINEERING.md` (workflow + Linux vs Mac gates), `docs/PROTOCOL.md`, `docs/SECURITY.md`.
+
+Cloud Agents: `.cursor/environment.json` (shellcheck + Python; Swift optional). Linux CI is `./scripts/lint-repo.sh` + `python3 scripts/check-html.py` + `python3 -m unittest scripts/test-protocol.py`. WebSocket Origin is allowlisted (`MAGICPAD_ALLOW_ANY_ORIGIN=1` debug hatch only).
