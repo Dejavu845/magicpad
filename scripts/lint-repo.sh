@@ -44,11 +44,11 @@ else
   fail_step "generate_qr.py --print-only --http"
 fi
 
-# --- 4b. Cycle 21 QR token lock (small file; do not grow test-protocol.py) ---
-if python3 -m unittest scripts/test_cycle21_qr.py -q; then
-  pass "unittest scripts/test_cycle21_qr.py"
+# --- 4b. Cycle 21/23 locks (small files; do not grow test-protocol.py) ---
+if python3 -m unittest scripts/test_cycle21_qr.py scripts/test_cycle23_stt.py -q; then
+  pass "unittest scripts/test_cycle21_qr.py scripts/test_cycle23_stt.py"
 else
-  fail_step "unittest scripts/test_cycle21_qr.py"
+  fail_step "unittest scripts/test_cycle21_qr.py scripts/test_cycle23_stt.py"
 fi
 
 # --- 5. tracked forbidden files ---
