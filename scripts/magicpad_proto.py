@@ -505,6 +505,15 @@ def pairing_configured(env: dict[str, str] | None = None) -> str | None:
     return v or None
 
 
+def pairing_merge_configured(env: str | None, runtime: str | None) -> str | None:
+    """Env wins. Empty env + menu PIN still requires a match. Never a /health key."""
+    a = (env or "").strip()
+    if a:
+        return a
+    b = (runtime or "").strip()
+    return b or None
+
+
 def pairing_allows(provided: str | None, configured: str | None = None) -> bool:
     """Off (configured empty/None) → allow. On → hello.pair must match."""
     want = configured
