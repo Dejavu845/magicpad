@@ -71,7 +71,7 @@ Mac 菜单栏 App（SwiftPM · LSUIElement）
 - **手势策略对**：单指只移光标、长按才武装拖选，避免「一滑就选字」。双指滚 / 右键、三指调度中心、四指 Launchpad / 桌面，覆盖已经超过多数浏览器遥控。  
 - **安全模型自洽**：产品就是「同 Wi‑Fi 未登录注入」。Origin 允许列表、POST `/stt` `/drop` 同源、配对口令默认关且 **禁止写进 QR / `/health`**，比把 token 印在二维码里的 iControl 更干净。  
 - **听写落点正确**：Whisper 在 Mac（ANE），音频可以不上公网。`no_on_device_stt` 拒绝云端 Apple Speech，和 AGENTS.md 一致。  
-- **换网**：`LANNetworkMonitor`，证书 SAN 自愈、QR 以当前 HTTP `:7878` 为准，比写死家里 IP 的早期版本成熟。  
+- **换网**：`LANNetworkMonitor`、证书 SAN 自愈、QR 以当前 HTTP `:7878` 为准，比写死家里 IP 的早期版本成熟。  
 - **Linux 门**：`lint-repo.sh`、`check-html.py`、协议单测、禁止烘焙 LAN IP / 家目录。Cloud Agent 能守底线。
 
 ### 3.4 主要问题
@@ -92,7 +92,7 @@ Mac 菜单栏 App（SwiftPM · LSUIElement）
 
 - 改一处触感就可能碰听写或 htmlRev。  
 - Linux 只能做字符串 / `node --check`，不能做真实 Touch 序列。  
-- RESEARCH-NEXT 里的「失败时给人看的清单」很难安全落地。
+- RESEARCH-NEXT 里的「业务失败时给人看的清单」很难安全落地。
 
 下一步不是上 React，而是 **逻辑拆文件、运行时仍可拼成单页**（或 `build_app.sh` 内联），并给手势 / host 解析补纯 JS 单测。
 
@@ -135,7 +135,7 @@ Linux Cloud Agent 不能 `swift test` / `build_app.sh` / 真机扫码。`smoke-a
 | **[Entangle](https://github.com/gabrieldonadel/entangle)** | iOS / Android 原生 | Bonjour | 无 | 触控 + 键 | 要上架；发现体验好，和「扫码即用」相反 |
 | **Sidecar / 通用控制** | 苹果账号 + iPad | Apple ID | 无 | 真系统指针 | iPhone 不是 Sidecar 屏；不是「任意安卓浏览器」 |
 
-商业遥控赢点：**发现、媒体甲板、跨 Windows**。开源浏览器遥控赢点：**零安装**。没有一家把 **本机 Whisper 听写** 做成和触控板同页的默认能力。
+商业遥控赢在：**发现、媒体甲板、跨 Windows**。开源浏览器遥控赢在：**零安装**。没有一家把 **本机 Whisper 听写** 做成和触控板同页的默认能力。
 
 ### 4.2 Mac 听写（语音 → 焦点框）
 
