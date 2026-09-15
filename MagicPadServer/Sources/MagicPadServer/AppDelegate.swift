@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 隐藏 Dock 图标,只保留菜单栏
         NSApp.setActivationPolicy(.accessory)
+        PairingRuntime.loadFromDefaults()
         MagicLog.app("launched, pid=\(ProcessInfo.processInfo.processIdentifier)")
         MagicLog.app("macOS \(ProcessInfo.processInfo.operatingSystemVersionString)")
 
