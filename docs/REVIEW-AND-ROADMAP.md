@@ -92,7 +92,7 @@ Mac 菜单栏 App（SwiftPM · LSUIElement）
 
 - 改一处触感就可能碰听写或 htmlRev。  
 - Linux 只能做字符串 / `node --check`，不能做真实 Touch 序列。  
-- RESEARCH-NEXT 里的「业务失败时给人看的清单」很难安全落地。
+- RESEARCH-NEXT 里的「失败时给人看的清单」很难安全落地。
 
 下一步不是上 React，而是 **逻辑拆文件、运行时仍可拼成单页**（或 `build_app.sh` 内联），并给手势 / host 解析补纯 JS 单测。
 
