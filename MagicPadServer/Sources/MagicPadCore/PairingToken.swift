@@ -23,6 +23,20 @@ public enum PairingToken {
         return raw.isEmpty ? nil : raw
     }
 
+    /// Env wins. Empty env + non-empty runtime (menu PIN) still requires a match.
+    /// Never read this into `/health`.
+    public static func mergeConfigured(_ env: String?, _ runtime: String?) -> String? {
+        let a = (env ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if !a.isEmpty { return a }
+        let b = (runtime ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        return b.isEmpty ? nil : b
+    }
+
+    /// Six ASCII digits. Shown once in the menu alert; never encoded in a QR.
+    public static func generatePin() -> String {
+        String(format: "%06d", Int.random(in: 0...999_999))
+    }
+
     /// Off → allow. On → `hello.pair` must equal the env value.
     public static func allows(_ provided: String?, configured: String? = nil) -> Bool {
         let want = configured ?? Self.configured()
