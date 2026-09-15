@@ -204,6 +204,14 @@ struct MagicPadServerApp: App {
                                    ? "已授权"
                                    : "未授权 · 点「辅助功能」打开设置",
                                secondary: appState.hasAccessibility)
+                    StatusLine(label: "Whisper",
+                               value: whisperMenuStatus(),
+                               secondary: true)
+                    StatusLine(label: "配对",
+                               value: PairingRuntime.required()
+                                   ? "已开 · 数字只在生成时显示一次 · 不进二维码"
+                                   : "关（家用）",
+                               secondary: true)
                     StatusLine(label: "诊断",
                                value: "proto \(ProtocolLimits.proto) · \(StaticFileLocator.htmlRev()) · \(WebSocketServer.liveClientCount) 端",
                                secondary: true)
@@ -242,6 +250,20 @@ struct MagicPadServerApp: App {
                         .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
+
+                    Button {
+                        togglePairingPin()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: PairingRuntime.required() ? "lock.fill" : "lock.open")
+                                .font(.system(size: 10))
+                            Text(PairingRuntime.required() ? "关闭配对" : "配对码")
+                                .font(.system(size: 11))
+                        }
+                        .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help("咖啡馆 / 公司 Wi‑Fi 才开。数字不进二维码、不进 /health。")
 
                     Button {
                         openCertDirectory()
@@ -385,6 +407,45 @@ struct StatusLine: View {
 }
 
 // MARK: - About / cert dir
+
+private func whisperMenuStatus() -> String {
+    if LocalWhisper.shared.isReady {
+        return "\(LocalWhisper.shared.modelLabel) 就绪"
+    }
+    if LocalWhisper.shared.isCached {
+        return "已缓存 · 首次听写会加载"
+    }
+    return "未下载 · 触控可用 · 听写先跑 fetch-whisper-model.sh"
+}
+
+@MainActor
+private func togglePairingPin() {
+    if PairingRuntime.required() {
+        PairingRuntime.persist(nil)
+        MagicLog.menu("pairing off")
+        let alert = NSAlert()
+        alert.messageText = "配对已关"
+        alert.informativeText = "同一 Wi‑Fi 的设备又可以直接注入。家用保持关闭即可。"
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "好")
+        alert.runModal()
+        return
+    }
+    let pin = PairingToken.generatePin()
+    PairingRuntime.persist(pin)
+    MagicLog.menu("pairing on")
+    let alert = NSAlert()
+    alert.messageText = "配对码（只显示这一次）"
+    alert.informativeText = """
+        \(pin)
+
+        在手机连接卡里输入。不会写进二维码，也不会出现在 /health。
+        咖啡馆 / 公司 Wi‑Fi 用；家里可以随时关掉。
+        """
+    alert.alertStyle = .informational
+    alert.addButton(withTitle: "好")
+    alert.runModal()
+}
 
 @MainActor
 private func showAbout() {
