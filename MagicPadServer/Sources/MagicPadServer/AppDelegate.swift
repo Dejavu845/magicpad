@@ -10,6 +10,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         MagicLog.app("launched, pid=\(ProcessInfo.processInfo.processIdentifier)")
         MagicLog.app("macOS \(ProcessInfo.processInfo.operatingSystemVersionString)")
+        // Beside the inject queue, once. Does not prompt and does not cache.
+        AccessibilityProbe.runOnceBesideInjectQueue()
 
         // 主动请求辅助功能(弹系统对话框)
         // 如果 user 授权了,AppState 定时器 1s 内变绿

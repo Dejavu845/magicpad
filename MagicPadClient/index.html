@@ -880,6 +880,8 @@
     }
     .finger-dot {
       position: absolute;
+      left: 0;
+      top: 0;
       width: 58px;
       height: 58px;
       border-radius: 50%;
@@ -891,16 +893,18 @@
         0 0 0 4px rgba(122, 162, 255, 0.1),
         0 0 22px rgba(108, 140, 255, 0.42),
         inset 0 1px 0 rgba(255, 255, 255, 0.35);
-      transform: translate(-50%, -50%) scale(0.72);
-      transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.16s ease;
+      /* Position is translate3d only — no transition, or the dot lags the finger. */
+      transform: translate3d(0, 0, 0) translate(-50%, -50%);
+      scale: 0.72;
+      transform-origin: center center;
+      transition: scale 0.14s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.16s ease;
+      will-change: transform;
       opacity: 0;
       pointer-events: none;
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
     }
     .finger-dot.active {
       opacity: 1;
-      transform: translate(-50%, -50%) scale(1.0);
+      scale: 1;
     }
     
     .finger-dot.f2 {
@@ -4217,7 +4221,7 @@
   <script>
   try {
     'use strict';
-        var MAGICPAD_HTML_REV = '20260924-dbg-h817';
+        var MAGICPAD_HTML_REV = '20260924-1.2-h818';
 
     const bootBanner = document.getElementById('bootBanner');
     const bootDetail = document.getElementById('bootDetail');
@@ -4792,6 +4796,7 @@
     let lastServerHtmlRev = '';
     // OPT-25: last /health probe outcome for HUD + differentiated dead-server copy
     let lastHealthOk = null;
+    let lastHealthDomKey = '';
     let lastHealthMs = null;
     let lastHealthErr = null; // 'timeout' | 'unreachable' | 'http' | 'bad_json' | 'bad_body' | null
     let lastWhisperReady = null;
@@ -5371,6 +5376,13 @@
           if (!silent) renderIpChips(ips, j.ip);
           const axWarn = j.ax === false;
           lastAxOk = !axWarn;
+          /* 1.2: silent /health must not touch classList when ax, rev, and ip are unchanged. */
+          const healthKey = (j.ax === false ? '0' : (j.ax === true ? '1' : '?'))
+            + '\n' + String(j.htmlRev || '')
+            + '\n' + String(j.ip || '');
+          const skipSilentDom = !!(silent && healthKey === lastHealthDomKey);
+          if (!skipSilentDom) {
+            lastHealthDomKey = healthKey;
           const bar = document.getElementById('statusBar');
           const axOn = !!(axWarn && (state.connected || isRecoveringNow()));
           if (bar) bar.classList.toggle('is-ax-warn', axOn);
@@ -5442,6 +5454,7 @@
             }
           }
           if (j.ip && dom.hostInput && !dom.hostInput.value) dom.hostInput.value = j.ip;
+          }
           j._ms = lastHealthMs;
           return j;
         }
@@ -6264,12 +6277,20 @@
         pendingPressure = 0;
       }
       if (pointers.size >= 2) {
+        pendingScrollDx += scrollFrameDx;
+        pendingScrollDy += scrollFrameDy;
+        scrollFrameDx = 0;
+        scrollFrameDy = 0;
+        scrollSentThisFrame = false;
         try { flushPendingScroll(); } catch (eScR) {}
         try { flushPendingPinch(); } catch (ePiR) {}
       } else {
         pendingScrollDx = 0;
         pendingScrollDy = 0;
         pendingPinchScale = 0;
+        scrollFrameDx = 0;
+        scrollFrameDy = 0;
+        scrollSentThisFrame = false;
       }
     }
     function gestureTapFeedback(how, name, okHaptic) {
@@ -7383,6 +7404,13 @@
     let pendingDx = 0, pendingDy = 0;
     let pendingPressure = 0;
     let moveSentThisFrame = false;
+    /* 1.2: phase 20 only. First packet of the frame sends now; the rest sum. */
+    let scrollSentThisFrame = false;
+    let scrollFrameDx = 0;
+    let scrollFrameDy = 0;
+    let padRafId = 0;
+    let trailFadeLeft = 0;
+    const TRAIL_FADE_FRAMES = 60;
     let twoFingerTapStartT = 0;
     let twoFingerMoved = 0;
     let twoFingerNetMoved = 0;
@@ -7444,12 +7472,31 @@
       return el;
     }
 
+    let fingerRoleKey = '';
+    const fingerPos = new Map();
+    let fingerRaf = 0;
+
+    function paintFinger(el, x, y) {
+      el.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0) translate(-50%,-50%)';
+    }
+
+    function flushFingerPos() {
+      fingerRaf = 0;
+      fingerPos.forEach(function (s) {
+        if (!s.el || !s.el.classList.contains('active')) return;
+        paintFinger(s.el, s.x, s.y);
+      });
+    }
+
     function refreshFingerRoles() {
       const active = [];
       for (const [id, el] of fingerDotEls) {
         if (el.classList.contains('active')) active.push({ id, el });
       }
       active.sort((a, b) => a.id - b.id);
+      const key = active.map(function (a) { return a.id; }).join(',');
+      if (key === fingerRoleKey) return;
+      fingerRoleKey = key;
       active.forEach((item, i) => {
         item.el.classList.remove('f2', 'f3');
         if (i === 1) item.el.classList.add('f2');
@@ -7465,13 +7512,20 @@
         el = makeFingerDot(identifier);
         fingerDotEls.set(identifier, el);
       }
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
-      el.classList.add('active');
-      refreshFingerRoles();
+      const became = !el.classList.contains('active');
+      if (became) el.classList.add('active');
+      fingerPos.set(identifier, { el: el, x: x, y: y });
+      /* First sample is immediate so the dot does not flash at 0,0. Later samples: one write per frame. */
+      if (!el._mpPlaced) {
+        el._mpPlaced = 1;
+        paintFinger(el, x, y);
+      }
+      if (!fingerRaf) fingerRaf = requestAnimationFrame(flushFingerPos);
+      if (became) refreshFingerRoles();
     }
 
     function hideFinger(identifier) {
+      fingerPos.delete(identifier);
       const el = fingerDotEls.get(identifier);
       if (el) {
         el.classList.remove('active', 'f2', 'f3');
@@ -7480,6 +7534,8 @@
     }
 
     function clearAllFingers() {
+      fingerPos.clear();
+      fingerRoleKey = '';
       for (const id of fingerDotEls.keys()) {
         const el = fingerDotEls.get(id);
         if (el) el.classList.remove('active', 'f2', 'f3');
@@ -7790,6 +7846,9 @@
       pendingScrollDx = 0;
       pendingScrollDy = 0;
       pendingPinchScale = 0;
+      scrollFrameDx = 0;
+      scrollFrameDy = 0;
+      scrollSentThisFrame = false;
       /* H655: skip-hide leftover cursor px must not flush after pong in front of the first tap. */
       pendingDx = 0;
       pendingDy = 0;
@@ -8032,10 +8091,13 @@
         downAt = now;
         downMoved = 0;
       }
+      if (!padIsVoicePage()) trailFadeLeft = TRAIL_FADE_FRAMES;
+      ensurePadLoop();
     }, { passive: false });
 
     dom.pad.addEventListener('touchmove', (e) => {
       if (!iosHapticNeedsTrustedClick()) e.preventDefault();
+      ensurePadLoop();
 
       for (const t of e.changedTouches) {
         if (!pointers.has(t.identifier)) continue;
@@ -8124,7 +8186,7 @@
           const firstDx = -(cx - twoFingerStartCenter.x);
           const firstDy = -(cy - twoFingerStartCenter.y);
           if (Math.abs(firstDx) >= 1 || Math.abs(firstDy) >= 1) {
-            sendGestureFrame(20, firstDx, firstDy, 0, 0, 0, 0);
+            queueScrollFrame(firstDx, firstDy);
             twoFingerScrollPixels += twoFingerNetMoved;
           }
           try {
@@ -8169,7 +8231,7 @@
         if (!twoFingerNotifyFired && twoFingerScrollArmed && step >= 0.6) {
           const scrollDx = -dcx;
           const scrollDy = -dcy;
-          sendGestureFrame(20, scrollDx, scrollDy, 0, 0, 0, 0);
+          queueScrollFrame(scrollDx, scrollDy);
           twoFingerScrollPixels += step;
           setPadScrolling(true);
           if (!scrollVelInitialized) {
@@ -8351,6 +8413,7 @@
         }
 
         if (pointers.size === 0) {
+          try { flushScrollFrame(true); } catch (eSf0) {}
           const wasPinch = pinchActive && pinchStartDist > 0;
           const finalScale = wasPinch ? (pinchLastDist / pinchStartDist) : 1.0;
           const distDeltaEnd = pinchStartDist > 0 ? Math.abs(pinchLastDist - pinchStartDist) : 0;
@@ -8392,6 +8455,7 @@
             scrollInertiaActive = true;
             scrollInertiaFrames = 0;
             setPadScrolling(true);
+            ensurePadLoop();
           } else {
             scrollVelX = scrollVelY = 0;
             scrollVelInitialized = false;
@@ -8399,6 +8463,7 @@
             setPadScrolling(false);
           }
         } else if (pointers.size === 1) {
+          try { flushScrollFrame(true); } catch (eSf1) {}
           const didRight = tryTwoFingerRightClick('one-up');
           pinchActive = false;
           pinchStartDist = 0;
@@ -8467,11 +8532,79 @@
       scrollVelX = scrollVelY = 0;
       scrollVelInitialized = false;
       scrollInertiaActive = false;
+      scrollFrameDx = 0;
+      scrollFrameDy = 0;
+      scrollSentThisFrame = false;
       sendEvent(3, 0, 0, 0, 0);
     }, { passive: false });
 
     document.addEventListener('gesturestart', (e) => e.preventDefault());
     document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    function padIsVoicePage() {
+      try { return document.body.classList.contains('mode-voice'); } catch (eV) { return false; }
+    }
+
+    function clearTrailCanvas() {
+      if (!ctx || !dom.trail) return;
+      try {
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, dom.trail.width, dom.trail.height);
+        ctx.restore();
+      } catch (eC) {}
+    }
+
+    function padMotionPending() {
+      if (pointers.size > 0) return true;
+      if (inertiaActive || scrollInertiaActive) return true;
+      if (Math.abs(scrollFrameDx) >= 1 || Math.abs(scrollFrameDy) >= 1) {
+        if (!resumeAwaitingPong && !queueUntilResumePong) return true;
+      }
+      if ((pendingDx !== 0 || pendingDy !== 0) && !resumeAwaitingPong && !queueUntilResumePong) return true;
+      if (!padIsVoicePage() && trailFadeLeft > 0) return true;
+      return false;
+    }
+
+    function ensurePadLoop() {
+      if (padRafId) return;
+      padRafId = requestAnimationFrame(loop);
+    }
+
+    /* Sum phase-20 deltas. First packet of this frame goes out now; the flag rAF only clears the gate. */
+    function flushScrollFrame(forceRound) {
+      if (scrollFrameDx === 0 && scrollFrameDy === 0) return;
+      let sx = forceRound ? Math.round(scrollFrameDx) : Math.trunc(scrollFrameDx);
+      let sy = forceRound ? Math.round(scrollFrameDy) : Math.trunc(scrollFrameDy);
+      if (sx > 32767) sx = 32767;
+      else if (sx < -32768) sx = -32768;
+      if (sy > 32767) sy = 32767;
+      else if (sy < -32768) sy = -32768;
+      if (sx === 0 && sy === 0) {
+        if (forceRound) {
+          scrollFrameDx = 0;
+          scrollFrameDy = 0;
+        }
+        return;
+      }
+      scrollFrameDx -= sx;
+      scrollFrameDy -= sy;
+      if (forceRound && Math.abs(scrollFrameDx) < 1 && Math.abs(scrollFrameDy) < 1) {
+        scrollFrameDx = 0;
+        scrollFrameDy = 0;
+      }
+      sendGestureFrame(20, sx, sy, 0, 0, 0, 0);
+    }
+
+    function queueScrollFrame(dx, dy) {
+      scrollFrameDx += dx;
+      scrollFrameDy += dy;
+      if (!scrollSentThisFrame) {
+        scrollSentThisFrame = true;
+        flushScrollFrame(false);
+        requestAnimationFrame(function () { scrollSentThisFrame = false; });
+      }
+    }
 
     function flushPendingMove(forceRound) {
       if (resumeAwaitingPong || queueUntilResumePong) return;
@@ -8496,8 +8629,16 @@
     }
 
     function loop() {
-      fadeTrail();
-      if (pointers.size > 0 && (pendingDx !== 0 || pendingDy !== 0)) {
+      padRafId = 0;
+      const voice = padIsVoicePage();
+      const fingers = pointers.size > 0;
+      if (voice) {
+        trailFadeLeft = 0;
+      } else if (fingers || trailFadeLeft > 0) {
+        fadeTrail();
+        if (!fingers && trailFadeLeft > 0) trailFadeLeft--;
+      }
+      if (fingers && (pendingDx !== 0 || pendingDy !== 0)) {
         flushPendingMove(false);
       } else if (pendingDx !== 0 || pendingDy !== 0) {
         if (resumeAwaitingPong || queueUntilResumePong) {
@@ -8507,6 +8648,9 @@
           pendingDx = 0;
           pendingDy = 0;
         }
+      }
+      if ((scrollFrameDx !== 0 || scrollFrameDy !== 0) && !resumeAwaitingPong && !queueUntilResumePong) {
+        flushScrollFrame(false);
       }
       if (!resumeAwaitingPong && !queueUntilResumePong && inertiaActive && activePointer === null) {
         if (inertiaFrames >= MOMENTUM.maxFrames ||
@@ -8542,8 +8686,9 @@
           scrollInertiaFrames++;
         }
       }
-      if (pointers.size > 0) {
+      if (fingers && !voice) {
         drawTrail(lastX, lastY, pendingPressure);
+        trailFadeLeft = TRAIL_FADE_FRAMES;
       }
       state.framesThisSecond++;
       const now = performance.now();
@@ -8558,9 +8703,8 @@
         state.eventsThisSecond = 0;
         state.lastFpsT = now;
       }
-      requestAnimationFrame(loop);
+      if (padMotionPending()) padRafId = requestAnimationFrame(loop);
     }
-    requestAnimationFrame(loop);
 
     function isAppleTouchDevice() {
       try {
@@ -9079,6 +9223,12 @@
 
       try { syncVisualViewport(); } catch (e) {}
       if (mode === 'voice') {
+        trailFadeLeft = 0;
+        try { clearTrailCanvas(); } catch (eTr) {}
+        if (!padMotionPending() && padRafId) {
+          cancelAnimationFrame(padRafId);
+          padRafId = 0;
+        }
         if (dom.debug) dom.debug.classList.add('hidden');
         syncVisualViewport();
         updateSendEnabled();
@@ -12683,6 +12833,9 @@
       pendingScrollDx = 0;
       pendingScrollDy = 0;
       pendingPinchScale = 0;
+      scrollFrameDx = 0;
+      scrollFrameDy = 0;
+      scrollSentThisFrame = false;
       try {
         /* H561: dying socket — queue unstick so resume flush still releases modifiers. */
         const unstickPayload = JSON.stringify({

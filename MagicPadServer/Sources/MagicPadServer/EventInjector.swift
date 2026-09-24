@@ -159,6 +159,40 @@ enum InjectRuntime {
     }
 }
 
+/// One log line on the inject queue, once per process. Not per frame.
+/// 2026-09-24, separate process, same kind of serial queue, n=61: median ~0.001ms, max ~13ms.
+/// No multi-second spike, so the hot path stays a live AXIsProcessTrusted() — no cache.
+enum AccessibilityProbe {
+    private static let lock = NSLock()
+    nonisolated(unsafe) private static var didProbe = false
+
+    static func runOnceBesideInjectQueue() {
+        InjectRuntime.async {
+            lock.lock()
+            if didProbe {
+                lock.unlock()
+                return
+            }
+            didProbe = true
+            lock.unlock()
+            var samples = [Double]()
+            samples.reserveCapacity(9)
+            var trusted = false
+            for _ in 0..<9 {
+                let t0 = CFAbsoluteTimeGetCurrent()
+                trusted = AXIsProcessTrusted()
+                samples.append((CFAbsoluteTimeGetCurrent() - t0) * 1000)
+            }
+            samples.sort()
+            let median = samples[samples.count / 2]
+            let maxMs = samples[samples.count - 1]
+            MagicLog.event(
+                "AX probe once n=9 medianMs=\(String(format: "%.3f", median)) maxMs=\(String(format: "%.3f", maxMs)) trusted=\(trusted) cache=off"
+            )
+        }
+    }
+}
+
 /// Last type/voice string staged for clipboard or unicode inject.
 /// Never cleared on ax_denied — dropping it is how text disappeared when AX was off.
 /// `remember` is last-write-wins on MainActor. `keepIfEmpty` is for injectQueue

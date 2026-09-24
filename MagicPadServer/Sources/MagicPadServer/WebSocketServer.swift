@@ -807,9 +807,9 @@ private final class WSConnection: @unchecked Sendable {
                     return
                 }
                 if method == "HEAD" {
-                    serveStaticFile(path: rawPath, headOnly: true)
+                    serveStaticFile(path: rawPath, header: header, headOnly: true)
                 } else {
-                    serveStaticFile(path: rawPath, headOnly: false)
+                    serveStaticFile(path: rawPath, header: header, headOnly: false)
                 }
                 return
             }
@@ -1044,7 +1044,17 @@ private final class WSConnection: @unchecked Sendable {
         })
     }
 
-    private func serveStaticFile(path: String, headOnly: Bool = false) {
+    private static func acceptsGzip(_ header: String) -> Bool {
+        guard let raw = headerValue(header, name: "Accept-Encoding")?.lowercased() else { return false }
+        for part in raw.split(separator: ",") {
+            let token = part.split(separator: ";").first?
+                .trimmingCharacters(in: .whitespaces) ?? ""
+            if token == "gzip" || token == "x-gzip" { return true }
+        }
+        return false
+    }
+
+    private func serveStaticFile(path: String, header: String = "", headOnly: Bool = false) {
         var cleanPath = path.split(separator: "?").first.map(String.init) ?? path
         if cleanPath.isEmpty { cleanPath = "/" }
         if cleanPath.count > 1 && cleanPath.hasSuffix("/") {
@@ -1057,14 +1067,16 @@ private final class WSConnection: @unchecked Sendable {
         let body: Data
         let contentType: String
         var statusLine = "HTTP/1.1 200 OK"
+        var contentEncoding = ""
 
         if cleanPath == "/health" || cleanPath == "/healthz" || cleanPath == "/ping" || cleanPath == "/health.json" {
             body = Data(Self.healthJSON().utf8)
             contentType = "application/json; charset=utf-8"
         } else if cleanPath == "/" || cleanPath == "/index.html" || cleanPath == "/pad" || cleanPath == "/m" {
-            if let (data, htmlPath) = StaticFileLocator.loadIndexHTML() {
-                body = data
-                MagicLog.ws("serve index \(data.count)B from \(StaticFileLocator.sourceLabel(htmlPath))")
+            if let page = StaticFileLocator.indexBody(gzip: Self.acceptsGzip(header)) {
+                body = page.data
+                if page.gzipped { contentEncoding = "gzip" }
+                MagicLog.ws("serve index \(page.data.count)B\(page.gzipped ? " gzip" : "") from \(StaticFileLocator.sourceLabel(page.path))")
             } else {
                 let tried = StaticFileLocator.indexHTMLCandidates().joined(separator: " · ")
                 body = Self.fallbackHTML(error: "index.html missing — tried: \(tried)")
@@ -1084,10 +1096,18 @@ private final class WSConnection: @unchecked Sendable {
             contentType = "text/html; charset=utf-8"
         }
 
+        var extraHeaders = ""
+        if !contentEncoding.isEmpty {
+            extraHeaders += "Content-Encoding: \(contentEncoding)\r\n"
+        }
+        if contentType.hasPrefix("text/html") {
+            extraHeaders += "Vary: Accept-Encoding\r\n"
+        }
         let responseHead =
             "\(statusLine)\r\n" +
             "Content-Type: \(contentType)\r\n" +
             "Content-Length: \(body.count)\r\n" +
+            extraHeaders +
             "Connection: close\r\n" +
             "X-MagicPad: 1\r\n" +
             Self.corsHeaders +

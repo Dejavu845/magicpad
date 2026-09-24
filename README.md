@@ -2,7 +2,7 @@
 
 把 iPhone / Android / 任意浏览器变成 Mac 的虚拟触控板，再加上机 Whisper 听写。
 
-**版本：1.1**（tag `1.1`，基线仍是 genX = 1.0）。下一轮小改叫 **1.2**。大改才叫 gen2。见 [`VERSION`](VERSION) 与 [`docs/GENX.md`](docs/GENX.md)。
+**版本：1.2**（tag `1.2`，基线仍是 genX = 1.0）。下一轮小改叫 **1.3**。大改才叫 gen2。见 [`VERSION`](VERSION) 与 [`docs/GENX.md`](docs/GENX.md)。
 
 无需安装手机 App，无需登录，扫码就连。语音只进剪贴板（可选自动 Cmd+V 到当前焦点），**不内置 LLM，不绑任何 AI agent**。
 
