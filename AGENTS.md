@@ -2,7 +2,7 @@
 
 LAN trackpad + on-device dictation. Voice goes to the clipboard (optional Cmd+V into the focused app). **No product LLM.**
 
-**Version: 1.2** (tag `1.2`, htmlRev `20260924-1.2-h818`). Baseline stays **genX = 1.0**. Next small iteration is **1.3**. **gen2 only for a large change.** See `docs/GENX.md`.
+**Version: 1.3** (tag `1.3`, htmlRev `20260924-1.3-h819`). Baseline stays **genX = 1.0**. Next small iteration is **1.4**. **gen2 only for a large change.** See `docs/GENX.md`.
 
 ## Do
 

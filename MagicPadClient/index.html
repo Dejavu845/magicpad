@@ -4221,7 +4221,7 @@
   <script>
   try {
     'use strict';
-        var MAGICPAD_HTML_REV = '20260924-1.2-h818';
+        var MAGICPAD_HTML_REV = '20260924-1.3-h819';
 
     const bootBanner = document.getElementById('bootBanner');
     const bootDetail = document.getElementById('bootDetail');
@@ -8260,6 +8260,13 @@
       }
     }, { passive: false });
 
+    /* Snapshot the commit flag BEFORE it is cleared. The old check read the
+       flag after `twoFingerScrollCommitted = false`, so coasting never started. */
+    function magicpadScrollInertia(scrollWasCommitted, rightFired, velX, velY) {
+      if (rightFired !== false || scrollWasCommitted !== true) return false;
+      return Math.abs(velX) > 1.5 || Math.abs(velY) > 1.5;
+    }
+
     dom.pad.addEventListener('touchend', (e) => {
       if (!iosHapticNeedsTrustedClick()) e.preventDefault();
       const now = performance.now();
@@ -8414,6 +8421,7 @@
 
         if (pointers.size === 0) {
           try { flushScrollFrame(true); } catch (eSf0) {}
+          const scrollWasCommitted = twoFingerScrollCommitted;
           const wasPinch = pinchActive && pinchStartDist > 0;
           const finalScale = wasPinch ? (pinchLastDist / pinchStartDist) : 1.0;
           const distDeltaEnd = pinchStartDist > 0 ? Math.abs(pinchLastDist - pinchStartDist) : 0;
@@ -8450,8 +8458,7 @@
           twoFingerScrollPixels = 0;
           threeFingerStartT = 0;
           threeFingerSwipeFired = false;
-          if (twoFingerRightFired === false && twoFingerScrollCommitted &&
-              (Math.abs(scrollVelX) > 1.5 || Math.abs(scrollVelY) > 1.5)) {
+          if (magicpadScrollInertia(scrollWasCommitted, twoFingerRightFired, scrollVelX, scrollVelY)) {
             scrollInertiaActive = true;
             scrollInertiaFrames = 0;
             setPadScrolling(true);
@@ -8465,6 +8472,7 @@
         } else if (pointers.size === 1) {
           try { flushScrollFrame(true); } catch (eSf1) {}
           const didRight = tryTwoFingerRightClick('one-up');
+          const scrollWasCommitted = twoFingerScrollCommitted;
           pinchActive = false;
           pinchStartDist = 0;
           pinchLastDist = 0;
@@ -8479,6 +8487,13 @@
             scrollVelInitialized = false;
             scrollInertiaActive = false;
             setPadScrolling(false);
+          } else if (magicpadScrollInertia(scrollWasCommitted, twoFingerRightFired, scrollVelX, scrollVelY)) {
+            /* One finger often lifts first. That path deletes the other finger,
+               so both-up never runs. Coast here, still drop the staying finger. */
+            scrollInertiaActive = true;
+            scrollInertiaFrames = 0;
+            setPadScrolling(true);
+            ensurePadLoop();
           } else if (!scrollInertiaActive) {
             setPadScrolling(false);
           }
