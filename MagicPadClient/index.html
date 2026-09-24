@@ -3621,6 +3621,105 @@
     }
     body.layout-phone-land.mode-voice.kb-open .voice-status { display: none; }
 
+    /* c6: phone portrait + keyboard. The 64px composer was the floor, and the
+       44px「打开键盘」chip plus textarea padding left the text box at 0.
+       Two lines stay visible; 分段收进顶栏. Mac 编辑栏横滑，底栏自己滚。 */
+    body.layout-phone-port.mode-voice.kb-open .status-bar {
+      min-height: calc(env(safe-area-inset-top, 0px) + 52px);
+      padding-top: calc(env(safe-area-inset-top, 0px) + 4px);
+      padding-bottom: 4px;
+      padding-right: max(156px, calc(env(safe-area-inset-right, 0px) + 148px));
+    }
+    body.layout-phone-port.mode-voice.kb-open .status-target { display: none; }
+    body.layout-phone-port.mode-voice.kb-open .status-bar > div:first-child {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    body.layout-phone-port.mode-voice.kb-open .mode-tabs {
+      z-index: 101;
+      top: calc(env(safe-area-inset-top, 0px) + 4px);
+      left: auto;
+      right: max(8px, env(safe-area-inset-right, 0px));
+      width: auto;
+      padding: 0;
+      transform: none;
+      opacity: 1;
+    }
+    body.layout-phone-port.mode-voice.kb-open .mode-tabs-inner { padding: 2px; }
+    body.layout-phone-port.mode-voice.kb-open .mode-tab {
+      box-sizing: border-box;
+      min-height: 44px;
+      min-width: 64px;
+      padding: 4px 14px;
+      font-size: 14px;
+    }
+    body.layout-phone-port.mode-voice.kb-open .mode-section[data-mode="voice"].active {
+      padding-top: calc(env(safe-area-inset-top, 0px) + 62px);
+    }
+    body.layout-phone-port.mode-voice.kb-open .voice-composer {
+      flex: 1 0 100px;
+      min-height: 100px;
+      max-height: none;
+    }
+    body.layout-phone-port.mode-voice.kb-open .focus-label { display: none; }
+    body.layout-phone-port.mode-voice.kb-open .voice-composer-bar {
+      padding: 2px 12px 8px;
+    }
+    body.layout-phone-port.mode-voice.kb-open #voiceInput {
+      flex: 1 1 auto;
+      min-height: 64px;
+      padding: 10px 14px 4px;
+      font-size: 17px;
+      line-height: 1.4;
+    }
+    body.layout-phone-port.mode-voice.kb-open .voice-panel { gap: 6px; }
+    body.layout-phone-port.mode-voice.kb-open .voice-dock {
+      flex: 0 1 auto;
+      min-height: 0;
+      gap: 6px;
+      padding: 6px 8px 4px;
+    }
+    body.layout-phone-port.mode-voice.kb-open .voice-dock > * {
+      flex-shrink: 0;
+    }
+    body.layout-phone-port.mode-voice.kb-open .instant-send {
+      order: 2;
+      min-height: 44px;
+      border-radius: 14px;
+    }
+    body.layout-phone-port.mode-voice.kb-open .instant-send .send-sub { display: none; }
+    body.layout-phone-port.mode-voice.kb-open .instant-send .send-main { font-size: 16px; }
+    body.layout-phone-port.mode-voice.kb-open .draft-edit-bar button {
+      min-height: 44px;
+      padding: 8px 6px;
+      font-size: 13px;
+    }
+    body.layout-phone-port.mode-voice.kb-open .mac-edit-bar {
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+      gap: 6px;
+      min-width: 0;
+      min-height: 44px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    body.layout-phone-port.mode-voice.kb-open .mac-edit-bar::-webkit-scrollbar {
+      display: none;
+    }
+    body.layout-phone-port.mode-voice.kb-open .mac-edit-bar button,
+    body.layout-phone-port.mode-voice.kb-open .mac-edit-bar button.wide,
+    body.layout-phone-port.mode-voice.kb-open .mac-edit-bar button#macBackspaceBtn {
+      flex: 0 0 auto;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+    body.layout-phone-port.mode-voice.kb-open .voice-status { display: none; }
+
     /* Tablet landscape: two panes */
     body.layout-tablet-land { --chrome-rail: 256px; }
     body.layout-tablet-land.mode-cursor .pad {
@@ -4020,7 +4119,7 @@
   <script>
   try {
     'use strict';
-        var MAGICPAD_HTML_REV = '20260924-c5-h813';
+        var MAGICPAD_HTML_REV = '20260924-c6-h814';
 
     const bootBanner = document.getElementById('bootBanner');
     const bootDetail = document.getElementById('bootDetail');
