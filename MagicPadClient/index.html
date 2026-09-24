@@ -3720,6 +3720,85 @@
     }
     body.layout-phone-port.mode-voice.kb-open .voice-status { display: none; }
 
+    /* c7: phone portrait, keyboard closed. The dock was flex-shrink:0 and
+       taller than the screen, so the 140px composer left about one line
+       and Mac 编辑 sat past the fold with nowhere to scroll. Composer
+       takes the rest (at least ~3 lines). Dock is capped and scrolls;
+       发送 / 听写 / Mac 编辑 stay at the top. Buttons stay ≥44px. */
+    body.layout-phone-port.mode-voice:not(.kb-open) .voice-composer {
+      flex: 1 1 0;
+      min-height: 168px;
+      max-height: none;
+    }
+    body.layout-phone-port.mode-voice:not(.kb-open) .voice-composer-bar {
+      padding: 4px 12px 8px;
+    }
+    body.layout-phone-port.mode-voice:not(.kb-open) #voiceInput {
+      min-height: 72px;
+      padding: 12px 14px 8px;
+      font-size: 18px;
+      line-height: 1.45;
+    }
+    body.layout-phone-port.mode-voice:not(.kb-open) .voice-dock {
+      flex: 0 1 42%;
+      min-height: 0;
+      gap: 8px;
+      padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+    }
+    body.layout-phone-port.mode-voice:not(.kb-open) .voice-dock::before { display: none; }
+    body.layout-phone-port.mode-voice:not(.kb-open) .voice-dock > * {
+      flex-shrink: 0;
+      order: 12;
+    }
+    body.layout-phone-port.mode-voice:not(.kb-open) .instant-send { order: 1; }
+    body.layout-phone-port.mode-voice:not(.kb-open) #draftEditSectionLabel,
+    body.layout-phone-port.mode-voice:not(.kb-open) .draft-edit-bar { order: 2; }
+    body.layout-phone-port.mode-voice:not(.kb-open) .voice-stt-row {
+      order: 3;
+      flex-wrap: nowrap;
+    }
+    body.layout-phone-port.mode-voice:not(.kb-open) .voice-stt-row .v-btn.mac-stt {
+      flex: 1.25 1 0;
+      min-height: 44px;
+      font-size: 15px;
+    }
+    body.layout-phone-port.mode-voice:not(.kb-open) .voice-stt-row .v-btn.ghost {
+      flex: 0.9 1 0;
+      min-width: 0;
+      min-height: 44px;
+      padding: 8px 6px;
+      font-size: 13px;
+    }
+    body.layout-phone-port.mode-voice:not(.kb-open) #macEditSectionLabel { order: 4; }
+    body.layout-phone-port.mode-voice:not(.kb-open) .mac-edit-bar {
+      order: 5;
+      flex-wrap: nowrap;
+      gap: 6px;
+      min-width: 0;
+      min-height: 44px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    body.layout-phone-port.mode-voice:not(.kb-open) .mac-edit-bar::-webkit-scrollbar { display: none; }
+    body.layout-phone-port.mode-voice:not(.kb-open) .mac-edit-bar button,
+    body.layout-phone-port.mode-voice:not(.kb-open) .mac-edit-bar button.wide,
+    body.layout-phone-port.mode-voice:not(.kb-open) .mac-edit-bar button#macBackspaceBtn {
+      flex: 0 0 auto;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+    body.layout-phone-port.mode-voice:not(.kb-open) #macSttHint:not(.is-caution),
+    body.layout-phone-port.mode-voice:not(.kb-open) #macEditHint:not(.is-caution) {
+      display: none;
+    }
+
     /* Tablet landscape: two panes */
     body.layout-tablet-land { --chrome-rail: 256px; }
     body.layout-tablet-land.mode-cursor .pad {
@@ -4119,7 +4198,7 @@
   <script>
   try {
     'use strict';
-        var MAGICPAD_HTML_REV = '20260924-c6-h814';
+        var MAGICPAD_HTML_REV = '20260924-c7-h815';
 
     const bootBanner = document.getElementById('bootBanner');
     const bootDetail = document.getElementById('bootDetail');
