@@ -11,6 +11,10 @@ import Foundation
 import Speech
 import AVFoundation
 import AppKit
+import MagicPadCore
+
+/// File STT callback. `engine` is who actually produced the result (`whisper` / `apple` / "").
+typealias FileSTTDone = @Sendable (Bool, String, String?, Bool, String) -> Void
 
 final class SpeechSession: @unchecked Sendable {
     static let shared = SpeechSession()
@@ -196,14 +200,14 @@ final class SpeechSession: @unchecked Sendable {
         lang: String?,
         contentType: String?,
         preferOnDevice: Bool = true,
-        completion: @escaping @Sendable (_ ok: Bool, _ text: String, _ reason: String?, _ onDevice: Bool) -> Void
+        completion: @escaping FileSTTDone
     ) {
         guard !data.isEmpty else {
-            completion(false, "", "empty_body", false)
+            completion(false, "", "empty_body", false, "")
             return
         }
         guard data.count <= 10_000_000 else {
-            completion(false, "", "too_large", false)
+            completion(false, "", "too_large", false, "")
             return
         }
 
@@ -224,12 +228,12 @@ final class SpeechSession: @unchecked Sendable {
         lang: String?,
         contentType: String?,
         preferOnDevice: Bool,
-        completion: @escaping @Sendable (_ ok: Bool, _ text: String, _ reason: String?, _ onDevice: Bool) -> Void
+        completion: @escaping FileSTTDone
     ) {
         let localeId = normalizeLang(lang)
         let locale = Locale(identifier: localeId)
         guard let recognizer = SFSpeechRecognizer(locale: locale), recognizer.isAvailable else {
-            completion(false, "", "recognizer_unavailable", false)
+            completion(false, "", "recognizer_unavailable", false, "apple")
             return
         }
         lock.lock()
@@ -242,7 +246,7 @@ final class SpeechSession: @unchecked Sendable {
         do {
             try data.write(to: url, options: .atomic)
         } catch {
-            completion(false, "", "write_temp:\(error.localizedDescription)", false)
+            completion(false, "", "write_temp:\(error.localizedDescription)", false, "apple")
             return
         }
 
@@ -263,8 +267,8 @@ final class SpeechSession: @unchecked Sendable {
             private let lock = NSLock()
             private var done = false
             let url: URL
-            private let onDone: @Sendable (Bool, String, String?, Bool) -> Void
-            init(url: URL, onDone: @escaping @Sendable (Bool, String, String?, Bool) -> Void) {
+            private let onDone: FileSTTDone
+            init(url: URL, onDone: @escaping FileSTTDone) {
                 self.url = url
                 self.onDone = onDone
             }
@@ -274,7 +278,7 @@ final class SpeechSession: @unchecked Sendable {
                 guard !done else { return }
                 done = true
                 try? FileManager.default.removeItem(at: url)
-                onDone(ok, text, reason, od)
+                onDone(ok, text, reason, od, "apple")
             }
         }
         let gate = Gate(url: url, onDone: completion)
@@ -330,7 +334,7 @@ final class SpeechSession: @unchecked Sendable {
         lang: String?,
         contentType: String?,
         preferOnDevice: Bool,
-        completion: @escaping @Sendable (_ ok: Bool, _ text: String, _ reason: String?, _ onDevice: Bool) -> Void
+        completion: @escaping FileSTTDone
     ) {
         let ext = Self.fileExtension(for: contentType, data: data)
         let url = FileManager.default.temporaryDirectory
@@ -338,24 +342,29 @@ final class SpeechSession: @unchecked Sendable {
         do {
             try data.write(to: url, options: .atomic)
         } catch {
-            completion(false, "", "write_temp", false)
+            completion(false, "", "write_temp", false, "")
             return
         }
         let localeId = normalizeLang(lang)
         LocalWhisper.shared.transcribe(fileURL: url, lang: localeId) { [weak self] ok, text, reason in
             try? FileManager.default.removeItem(at: url)
             if ok {
-                completion(true, text, reason, true)
+                completion(true, text, reason, true, "whisper")
+                return
+            }
+            if !DictationRoute.shouldFallbackToApple(ok: ok, reason: reason) {
+                MagicLog.event("whisper file empty — not sending to Apple Speech")
+                completion(false, text, reason ?? "empty", true, "whisper")
                 return
             }
             MagicLog.event("whisper file miss (\(reason ?? "?")) → Apple Speech")
             guard let self else {
-                completion(false, "", reason ?? "whisper_fail", false)
+                completion(false, "", reason ?? "whisper_fail", false, "whisper")
                 return
             }
             self.ensureSpeechAuthorized { authOk, authReason in
                 if !authOk {
-                    completion(false, "", reason ?? authReason ?? "whisper_fail", false)
+                    completion(false, "", reason ?? authReason ?? "whisper_fail", false, "whisper")
                     return
                 }
                 self.sessionQueue.async {
@@ -494,16 +503,30 @@ final class SpeechSession: @unchecked Sendable {
                 }
                 return
             }
+            if !DictationRoute.shouldFallbackToApple(ok: ok, reason: reason) {
+                try? FileManager.default.removeItem(at: url)
+                MagicLog.event("whisper live empty — not sending to Apple Speech")
+                session.sessionQueue.async {
+                    session.emitFinal(
+                        text: "",
+                        ok: false,
+                        reason: reason ?? "empty",
+                        engine: "whisper",
+                        onDevice: true
+                    )
+                }
+                return
+            }
             MagicLog.event("whisper miss (\(reason ?? "?")) → Apple on live wav")
-            session.fallbackAppleFile(url: url, lang: session.currentLang) { aOk, aText, aReason in
+            session.fallbackAppleFile(url: url, lang: session.currentLang) { aOk, aText, aReason, aOnDevice in
                 try? FileManager.default.removeItem(at: url)
                 session.sessionQueue.async {
                     session.emitFinal(
                         text: aText,
                         ok: aOk,
                         reason: aReason ?? reason,
-                        engine: aOk ? "apple" : "whisper",
-                        onDevice: aOk
+                        engine: "apple",
+                        onDevice: aOnDevice
                     )
                 }
             }
@@ -518,15 +541,15 @@ final class SpeechSession: @unchecked Sendable {
     private func fallbackAppleFile(
         url: URL,
         lang: String,
-        completion: @escaping @Sendable (Bool, String, String?) -> Void
+        completion: @escaping @Sendable (Bool, String, String?, Bool) -> Void
     ) {
         guard let data = try? Data(contentsOf: url), !data.isEmpty else {
-            completion(false, "", "whisper_fail")
+            completion(false, "", "whisper_fail", false)
             return
         }
         ensureSpeechAuthorized { [weak self] authOk, authReason in
             guard let self, authOk else {
-                completion(false, "", authReason ?? "whisper_fail")
+                completion(false, "", authReason ?? "whisper_fail", false)
                 return
             }
             self.sessionQueue.async {
@@ -535,8 +558,8 @@ final class SpeechSession: @unchecked Sendable {
                     lang: lang,
                     contentType: "audio/wav",
                     preferOnDevice: true,
-                    completion: { ok, text, reason, _ in
-                        completion(ok, text, reason)
+                    completion: { ok, text, reason, onDevice, _ in
+                        completion(ok, text, reason, onDevice)
                     }
                 )
             }

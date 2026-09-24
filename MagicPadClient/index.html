@@ -4217,7 +4217,7 @@
   <script>
   try {
     'use strict';
-        var MAGICPAD_HTML_REV = '20260924-c8-h816';
+        var MAGICPAD_HTML_REV = '20260924-dbg-h817';
 
     const bootBanner = document.getElementById('bootBanner');
     const bootDetail = document.getElementById('bootDetail');
@@ -11531,7 +11531,8 @@
         }
         const cleaned = normalizeDictationText(text);
         setDraftText(cleaned);
-        const eng = (j.engine === 'whisper' || j.onDevice) ? ' · Whisper·ANE' : '';
+        /* On-device Apple Speech is not Whisper ANE. engine is the server's word. */
+        const eng = (j && j.engine === 'whisper') ? ' · Whisper·ANE' : '';
         setVoiceStatus(
           liveDirect
             ? ('转写完成' + eng + ' · ' + cleaned.length + ' 字 · 将自动发送')

@@ -958,13 +958,13 @@ private final class WSConnection: @unchecked Sendable {
                 lang: lang,
                 contentType: contentType,
                 preferOnDevice: true
-            ) { [weak self] ok, text, reason, onDevice in
+            ) { [weak self] ok, text, reason, onDevice, engine in
                 guard let self else { return }
                 var obj: [String: Any] = [
                     "ok": ok,
                     "text": text,
                     "onDevice": onDevice,
-                    "engine": onDevice ? "whisper" : "apple",
+                    "engine": DictationRoute.reportedEngine(engine),
                     "bytes": body.count,
                 ]
                 if let reason { obj["reason"] = reason }
