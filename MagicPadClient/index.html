@@ -2504,20 +2504,61 @@
       body.mode-voice .action-toast {
         bottom: calc(env(safe-area-inset-bottom, 8px) + 120px);
       }
+      /* c2: the section already insets under the status bar. A second pad plus
+         a 26vh cap left the draft a short strip under a full-width 听写 row. */
       body.mode-voice .voice-panel {
-        padding-top: calc(env(safe-area-inset-top, 0px) + 80px);
+        padding-top: 0;
+        padding-bottom: 0;
         padding-left: max(12px, env(safe-area-inset-left, 0px));
         padding-right: max(12px, env(safe-area-inset-right, 0px));
+        min-height: 0;
       }
-      body.mode-voice #voiceInput { min-height: 72px; max-height: 26vh; padding: 12px 14px 32px; }
-      body.mode-voice .voice-composer { min-height: 96px; border-radius: 16px; }
+      body.layout-phone-land.mode-voice .voice-panel,
+      body.layout-tablet-land.mode-voice .voice-panel {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      body.mode-voice #voiceInput {
+        min-height: 0;
+        max-height: none;
+        padding: 12px 14px 8px;
+        font-size: 17px;
+      }
+      body.mode-voice .voice-composer {
+        flex: 1 1 auto;
+        min-height: 112px;
+        border-radius: 16px;
+      }
       body.mode-voice .voice-head { padding: 6px 8px; }
-      body.mode-voice .voice-head h1 { font-size: 16px; }
+      body.mode-voice .voice-head h1 { font-size: 15px; }
       body.mode-voice .voice-head p { display: none; }
       body.mode-voice .voice-dock {
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: 52%;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
         padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
         gap: 8px;
       }
+      body.layout-phone-land.mode-voice .voice-dock,
+      body.layout-tablet-land.mode-voice .voice-dock {
+        max-height: none;
+      }
+      body.mode-voice .voice-stt-row { flex-wrap: nowrap; }
+      body.mode-voice .voice-stt-row .v-btn.mac-stt {
+        flex: 1.35 1 0;
+        min-height: 44px;
+        font-size: 15px;
+      }
+      body.mode-voice .voice-stt-row .v-btn.ghost {
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 8px 8px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      body.mode-voice #macSttHint:not(.is-caution) { display: none; }
       body.mode-voice .voice-dock::before { display: none; }
       body.mode-voice .live-toggle .live-copy small { display: none; }
       body.mode-voice .instant-send { min-height: 48px; border-radius: 14px; }
@@ -3758,7 +3799,7 @@
   <script>
   try {
     'use strict';
-        var MAGICPAD_HTML_REV = '20260924-c1-h807';
+        var MAGICPAD_HTML_REV = '20260924-c2-h808';
 
     const bootBanner = document.getElementById('bootBanner');
     const bootDetail = document.getElementById('bootDetail');
