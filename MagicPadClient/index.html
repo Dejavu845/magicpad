@@ -3323,6 +3323,60 @@
     body.layout-tablet-port .connect-prompt { max-width: 420px; }
     body.layout-tablet-port .pad-hint { max-width: 360px; }
 
+    /* c3: phone portrait cursor bar — five actions on one row, system keys 4+3. Targets stay ≥44px. */
+    body.layout-phone-port.mode-cursor .pad-chrome {
+      left: 10px;
+      right: 10px;
+      bottom: calc(env(safe-area-inset-bottom, 8px) + 8px);
+      gap: 6px;
+    }
+    body.layout-phone-port.mode-cursor .pad-chrome::before { height: 40px; }
+    body.layout-phone-port.mode-cursor .pad-actions:not(.system) {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+      padding: 6px;
+      border-radius: 16px;
+    }
+    body.layout-phone-port.mode-cursor .pad-actions:not(.system) .pad-action-btn {
+      min-width: 0;
+      min-height: 44px;
+      padding: 6px 2px;
+      font-size: 13px;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+    body.layout-phone-port.mode-cursor .pad-actions.system {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 6px;
+      padding: 6px;
+      border-radius: 16px;
+    }
+    body.layout-phone-port.mode-cursor .pad-actions.system .pad-action-btn {
+      grid-column: span 3;
+      min-width: 0;
+      min-height: 44px;
+      padding: 6px 2px;
+      font-size: 12px;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+    body.layout-phone-port.mode-cursor .pad-actions.system .pad-action-btn:nth-child(n + 5) {
+      grid-column: span 4;
+    }
+    @media (max-width: 359px) {
+      body.layout-phone-port.mode-cursor .pad-actions:not(.system) .pad-action-btn,
+      body.layout-phone-port.mode-cursor .pad-actions.system .pad-action-btn {
+        font-size: 11px;
+        letter-spacing: -0.04em;
+      }
+    }
+
     /* Phone landscape: pad + right rail */
     body.layout-phone-land { --chrome-rail: 92px; }
     body.layout-phone-land.mode-cursor .pad {
@@ -3799,7 +3853,7 @@
   <script>
   try {
     'use strict';
-        var MAGICPAD_HTML_REV = '20260924-c2-h808';
+        var MAGICPAD_HTML_REV = '20260924-c3-h809';
 
     const bootBanner = document.getElementById('bootBanner');
     const bootDetail = document.getElementById('bootDetail');
