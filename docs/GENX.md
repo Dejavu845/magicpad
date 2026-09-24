@@ -1,22 +1,23 @@
 # MagicPad genX
 
-2026-09-24 起，当前这版叫 **MagicPad genX**。
+2026-09-24 起，当前这版叫 **MagicPad genX**，版本号 **1.0**。
 
-基线 commit：`d58cfa5`（8 圈 UI loop 收工，`htmlRev=20260924-c8-h816`）。
+基线：git tag `genX`（`b389616`，`htmlRev=20260924-c8-h816`）。8 圈 UI loop 收工。
 
 ## 编号
 
 | 名字 | 含义 |
 |---|---|
-| **genX** | 基线。这一版。 |
-| **genX-1** | 基线之后的第 1 次迭代 |
-| **genX-2** | 第 2 次，依此类推 |
+| **genX / 1.0** | 基线。这一版。 |
+| **1.1** | genX 之后的第一轮 debug（落地再打 tag `1.1`） |
+| **1.2, 1.3…** | 小改、修 bug、UI 微调 |
+| **gen2 / 2.0** | 只有大改架构才用。不要随手叫 gen2。 |
 
 规则：
 
-- 只在 genX 上往前加数字，不另起代号。
-- 每次迭代：改 `VERSION` 的 `iteration` 和名字，打 git tag `genX-N`（本地；不 push 除非点名）。
-- `htmlRev` 可以带 `genX-N`，但不要把家里 IP 写进去。
+- 日常迭代走 **1.x**，不要写成 genX-1。
+- 每次落地：改 `VERSION` 的 `version`，打同名 git tag（`1.1`、`1.2`…）。不跳号。
+- `htmlRev` 可以带 `1.1`，不要把家里 IP 写进去。
 - 不绑 LLM。
 
-产品名对外仍可写 MagicPad；对内版本一律 **genX** / **genX-N**。
+产品名对外仍可写 MagicPad；对内：**genX = 1.0**，之后 **1.1 / 1.2…**。

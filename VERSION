@@ -1,11 +1,14 @@
 MagicPad genX
+version: 1.0
 iteration: 0
 codename: genX
-git: d58cfa5
+git: b389616
 htmlRev: 20260924-c8-h816
 date: 2026-09-24
 
-# Next iterations are numbered on this baseline:
-#   genX-1, genX-2, genX-3, ...
-# Stamp VERSION + git tag genX-N when an iteration lands.
-# Do not skip numbers. Do not rename genX.
+# Naming:
+#   genX  = 1.0  (this baseline)
+#   next after the in-flight debug round = 1.1
+#   then 1.2, 1.3, … for small iterations
+#   gen2 / 2.0 only for a large architecture change
+# Tag: genX (1.0), then 1.1, 1.2, … Do not tag genX-1.

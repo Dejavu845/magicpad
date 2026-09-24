@@ -2,7 +2,7 @@
 
 LAN trackpad + on-device dictation. Voice goes to the clipboard (optional Cmd+V into the focused app). **No product LLM.**
 
-**Version: MagicPad genX.** Baseline is git tag `genX` (`d58cfa5`, htmlRev `20260924-c8-h816`). Later iterations are **genX-1**, **genX-2**, … — update `VERSION`, tag `genX-N`, do not invent a new codename. See `docs/GENX.md`.
+**Version: MagicPad genX = 1.0** (git tag `genX`, htmlRev `20260924-c8-h816`). Next debug round is **1.1**. Then 1.2, 1.3… **gen2 only for a large change.** See `docs/GENX.md`.
 
 ## Do
 
