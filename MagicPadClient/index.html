@@ -1017,12 +1017,12 @@
       max-width: 560px;
       width: 100%;
       margin: 0 auto;
-      gap: 12px;
+      gap: 8px;
     }
 
     .voice-head {
       flex-shrink: 0;
-      padding: 12px 14px;
+      padding: 8px 12px;
       border-radius: 18px;
       border: 1px solid var(--glass-border);
       background:
@@ -1046,7 +1046,7 @@
       border: 1px solid rgba(52, 211, 153, 0.32);
       padding: 5px 12px;
       border-radius: 999px;
-      margin-bottom: 8px;
+      margin-bottom: 0;
       box-shadow:
         0 0 18px rgba(52, 211, 153, 0.14),
         inset 0 1px 0 rgba(255, 255, 255, 0.12);
@@ -1067,6 +1067,33 @@
     }
     .voice-ax-note.show { display: block; }
     .voice-ax-note strong { color: #fbbf24; }
+    /* Quiet helper copy. Amber is only for a real caution (HTTPS / offline / AX). */
+    .voice-hint {
+      margin: 0;
+      padding: 0 2px;
+      border: 0;
+      background: none;
+      color: var(--text-tertiary);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+    .voice-hint.is-caution {
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      background: rgba(251, 191, 36, 0.1);
+      color: #fde68a;
+      font-weight: 650;
+    }
+    .voice-head-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .voice-head-row .voice-badge { flex-shrink: 0; }
+    .voice-head-copy { min-width: 0; }
     .voice-badge::before {
       content: "";
       width: 6px;
@@ -1083,21 +1110,21 @@
       body.is-online .voice-badge::before { animation: none; }
     }
     @media (max-height: 700px) {
-      .voice-head p { display: none; } 
-      .voice-head { padding: 10px 12px; }
-      .voice-head h1 { font-size: 18px; }
+      .voice-head p { display: none; }
+      .voice-head { padding: 6px 10px; }
+      .voice-head h1 { font-size: 14px; }
     }
     .voice-head h1 {
-      font-size: 22px;
+      font-size: 15px;
       font-weight: 700;
-      letter-spacing: -0.03em;
+      letter-spacing: -0.02em;
       color: var(--text-primary);
-      line-height: 1.2;
+      line-height: 1.25;
     }
     .voice-head p {
-      margin-top: 4px;
-      font-size: 13px;
-      line-height: 1.45;
+      margin-top: 1px;
+      font-size: 12px;
+      line-height: 1.35;
       color: var(--text-secondary);
     }
     .voice-head p em {
@@ -1180,15 +1207,15 @@
       flex: 1;
       width: 100%;
       min-height: 0;
-      padding: 18px 18px 40px;
+      padding: 16px 16px 36px;
       border: 0;
       outline: 0;
       resize: none;
       background: transparent;
       color: var(--text-primary);
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
-      font-size: 17px;
-      line-height: 1.55;
+      font-size: 18px;
+      line-height: 1.62;
       letter-spacing: -0.01em;
       -webkit-user-select: text !important;
       user-select: text !important;
@@ -1198,7 +1225,7 @@
     }
     #voiceInput::placeholder {
       color: var(--text-tertiary);
-      font-size: 15px;
+      font-size: 16px;
       line-height: 1.5;
     }
 
@@ -1366,8 +1393,26 @@
       -webkit-overflow-scrolling: touch;
     }
     body.mode-voice.kb-open .instant-send { min-height: 52px; }
-    .voice-stt-row .v-btn.mac-stt { flex: 1.2; }
-    .voice-stt-row .v-btn { flex: 1; min-width: 0; }
+    .voice-stt-row { flex-wrap: wrap; }
+    .voice-stt-row .v-btn.mac-stt {
+      flex: 1 1 100%;
+      min-height: 48px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .voice-stt-row .v-btn.ghost {
+      flex: 1 1 calc(50% - 5px);
+      min-width: 0;
+      font-size: 13px;
+    }
+    body.mode-voice.kb-open .voice-stt-row .v-btn.mac-stt {
+      flex: 1.3 1 0;
+      min-height: 44px;
+      font-size: 15px;
+    }
+    body.mode-voice.kb-open .voice-stt-row .v-btn.ghost {
+      flex: 0.9 1 0;
+    }
     
     body.mode-voice.kb-open .mode-tabs {
       top: calc(env(safe-area-inset-top, 0px) + 44px);
@@ -2234,11 +2279,10 @@
       color: #fecaca;
     }
     .section-label {
-      font-size: 11px;
-      font-weight: 650;
+      font-size: 12px;
+      font-weight: 600;
       color: var(--text-tertiary);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      letter-spacing: 0.01em;
       padding: 2px 4px 0;
     }
 
@@ -3553,12 +3597,16 @@
   <section class="mode-section" data-mode="voice" aria-label="语音">
     <div class="voice-panel" id="voicePanel">
       <header class="voice-head">
-        <div class="voice-badge">草稿 / 听写</div>
         <div class="voice-ax-note" id="voiceAxNote" hidden role="status">
           <strong>需辅助功能</strong> — 文字会进剪贴板 · 粘进焦点需勾选 MagicPad
         </div>
-        <h1>输入</h1>
-        <p>可先打草稿 · 听写用手机麦克风，Mac 上 Whisper 转写后再点发送。</p>
+        <div class="voice-head-row">
+          <div class="voice-badge">草稿 / 听写</div>
+          <div class="voice-head-copy">
+            <h1>可先打草稿</h1>
+            <p>听写只填本框，再点发送。</p>
+          </div>
+        </div>
       </header>
 
       <div class="voice-composer" id="voiceComposer">
@@ -3599,8 +3647,8 @@
           <button type="button" class="v-btn mac-stt" id="macSttBtn" title="对着手机说话，Mac Whisper 转写">
             听写
           </button>
-          <button type="button" class="v-btn ghost phone-rec" id="phoneRecBtn" title="触控板未连 · 录音仍走网页上传">
-            录音发 mp4
+          <button type="button" class="v-btn ghost phone-rec" id="phoneRecBtn" title="录音后贴进 Mac 焦点 · 未连触控板仍走网页上传">
+            录音
           </button>
           <button type="button" class="v-btn ghost" id="phoneFileBtn" title="触控板未连 · 文件仍走网页上传">
             文件/照片
@@ -3609,9 +3657,7 @@
           <input type="file" id="phoneAudioCapture" accept="audio/*,audio/m4a,audio/mp4,audio/mpeg,audio/wav,.m4a,.mp3,.wav,.caf" hidden />
           <input type="file" id="phoneMediaPick" accept="image/*,audio/*,video/*,.pdf,.txt,.zip,.doc,.docx,.pages,.png,.jpg,.jpeg,.heic,.mov,.mp4,.m4a,.mp3,.wav,.caf" multiple hidden />
         </div>
-        <p class="voice-ax-note" id="macSttHint" style="display:block;margin:0 0 8px">
-          「听写」用手机麦克风，传到 Mac 上 Whisper（ANE）转写。iPhone 需打开 HTTPS 页。
-        </p>
+        <p class="voice-hint" id="macSttHint">听写只填上面的草稿。录音会贴进 Mac 焦点。</p>
 
         <label class="live-toggle" id="remoteKbToggleWrap">
           <input type="checkbox" id="remoteKbToggle" checked />
@@ -3659,7 +3705,7 @@
           <button type="button" data-key="enter" title="未连会排队，连上后发出">回车</button>
           <button type="button" data-key="unstick" class="wide" title="未连会排队，连上后发出">解除卡键</button>
         </div>
-        <p class="voice-ax-note" id="macEditHint" style="display:block;margin:0 0 8px">长按 ⌫ 连删 · 未连会排队 · 失灵点「解除卡键」</p>
+        <p class="voice-hint" id="macEditHint">长按 ⌫ 连删 · 未连会排队 · 失灵点「解除卡键」</p>
 
         <button type="button" class="send-btn" id="sendBtn" disabled style="display:none" aria-hidden="true"></button>
 
@@ -3712,7 +3758,7 @@
   <script>
   try {
     'use strict';
-        var MAGICPAD_HTML_REV = '20260829-0658-h806';
+        var MAGICPAD_HTML_REV = '20260924-c1-h807';
 
     const bootBanner = document.getElementById('bootBanner');
     const bootDetail = document.getElementById('bootDetail');
@@ -6089,20 +6135,21 @@
       const el = document.getElementById('macSttHint');
       if (!el) return;
       const secure = typeof isSecureMediaContext === 'function' && isSecureMediaContext();
-      if (typeof pageIsHttps === 'function' && pageIsHttps()) {
-        /* https page is secure enough for getUserMedia */
-      }
+      let caution = false;
+      let text = '听写只填上面的草稿。录音会贴进 Mac 焦点。';
       if (netIsOffline()) {
-        el.textContent = '网络不稳 · 听写上传也要等回来。';
+        caution = true;
+        text = '网络不稳 · 听写上传也要等回来。';
       } else if (!secure && !(typeof pageIsHttps === 'function' && pageIsHttps())) {
-        el.textContent = '听写要用手机麦 · 请点顶部横幅打开 HTTPS（:' + (CONFIG.httpsPort || 7879) + '）。转写在 Mac 上跑 Whisper。';
+        caution = true;
+        text = '听写要用手机麦 · 请点顶部横幅打开 HTTPS（:' + (CONFIG.httpsPort || 7879) + '）。';
       } else if (lastWhisperCached === false) {
-        el.textContent = '对着手机说话。第一次会下载模型到 Mac，之后 ANE 转写只填草稿。';
+        text = '对着手机说话。第一次会在 Mac 下载模型，之后只填草稿。';
       } else if (lastAxOk === false) {
-        el.textContent = '听写进草稿不需辅助功能；发送到焦点才要开。';
-      } else {
-        el.textContent = '听写 = 手机麦 → Mac Whisper（ANE）。录音发 mp4 才会贴进焦点。';
+        text = '听写进草稿不需辅助功能；发送到焦点才要开。';
       }
+      el.textContent = text;
+      el.classList.toggle('is-caution', caution);
     }
 
     function syncRightClickAxLabel() {
@@ -8985,6 +9032,7 @@
       try {
         const el = document.getElementById('macEditHint');
         if (!el) return;
+        const editCaution = netIsOffline() || isRecoveringNow() || !state.connected || lastAxOk === false;
         if (netIsOffline() || isRecoveringNow() || !state.connected) {
           el.textContent = '长按 ⌫ 连删 · 未连会排队 · 失灵点「解除卡键」';
         } else if (lastAxOk === false) {
@@ -8992,6 +9040,7 @@
         } else {
           el.textContent = '长按 ⌫ 连删 · 失灵点「解除卡键」';
         }
+        el.classList.toggle('is-caution', editCaution);
         const lab = document.getElementById('macEditSectionLabel');
         if (lab) {
           if (netIsOffline() || isRecoveringNow() || !state.connected) lab.textContent = '改 Mac 框 · 未连会排队';
@@ -10935,7 +10984,7 @@
           return;
         }
         if (phoneRecActive) {
-          showToast('先停「录音发 mp4」', 'warn');
+          showToast('先停「录音」', 'warn');
           return;
         }
         const secure = (typeof isSecureMediaContext === 'function' && isSecureMediaContext())
@@ -10977,7 +11026,7 @@
         phoneRecBtn.disabled = !(httpOk || phoneRecActive);
         phoneRecBtn.classList.toggle('is-hot', phoneRecActive);
         phoneRecBtn.classList.toggle('phone-rec', true);
-        phoneRecBtn.textContent = phoneRecActive ? '停止并发送' : '录音发 mp4';
+        phoneRecBtn.textContent = phoneRecActive ? '停止并发送' : '录音';
         if (phoneRecActive) {
           phoneRecBtn.removeAttribute('title');
         } else if (isRecoveringNow()) {
@@ -11521,7 +11570,7 @@
             setVoiceStatus(
               (document.getElementById('voiceStatusText') &&
                 document.getElementById('voiceStatusText').textContent) ||
-              '可用「录音发Mac」重试，或点「文件/照片」选音频'
+              '可用「录音」重试，或点「文件/照片」选音频'
             );
           }
         }, 400);
