@@ -3514,6 +3514,113 @@
     body.layout-phone-land.mode-voice .instant-send { min-height: 48px; }
     body.layout-phone-land.mode-voice .section-label:not(.keep-kb) { display: none; }
 
+    /* c5: phone landscape + keyboard. The section is already the visual viewport.
+       A second tab row plus the portrait 42% composer cap left the draft ~20px,
+       and Mac 编辑栏 pushed 发送 below that short dock. */
+    body.layout-phone-land.mode-voice.kb-open .status-bar {
+      min-height: 48px;
+      padding-top: calc(env(safe-area-inset-top, 0px) + 4px);
+      padding-bottom: 4px;
+      padding-right: max(168px, calc(env(safe-area-inset-right, 0px) + 156px));
+    }
+    body.layout-phone-land.mode-voice.kb-open .status-target { display: none; }
+    body.layout-phone-land.mode-voice.kb-open .status-bar > div:first-child {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    body.layout-phone-land.mode-voice.kb-open .mode-tabs {
+      z-index: 101;
+      top: calc(env(safe-area-inset-top, 0px) + 4px);
+      left: auto;
+      right: max(8px, env(safe-area-inset-right, 0px));
+      width: auto;
+      padding: 0;
+      transform: none;
+      opacity: 1;
+    }
+    body.layout-phone-land.mode-voice.kb-open .mode-tabs-inner { padding: 2px; }
+    body.layout-phone-land.mode-voice.kb-open .mode-tab {
+      box-sizing: border-box;
+      min-height: 40px;
+      min-width: 64px;
+      padding: 4px 12px;
+      font-size: 13px;
+    }
+    body.layout-phone-land.mode-voice.kb-open .mode-section[data-mode="voice"].active {
+      padding-top: calc(env(safe-area-inset-top, 0px) + 52px);
+      padding-bottom: 4px;
+    }
+    body.layout-phone-land.mode-voice.kb-open .voice-composer,
+    body.layout-tablet-land.mode-voice.kb-open .voice-composer {
+      flex: 1 1 auto;
+      max-height: none;
+      min-height: 0;
+    }
+    body.layout-phone-land.mode-voice.kb-open .focus-label { display: none; }
+    body.layout-phone-land.mode-voice.kb-open .voice-composer-bar {
+      position: absolute;
+      right: 8px;
+      bottom: 4px;
+      left: auto;
+      width: auto;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      pointer-events: none;
+    }
+    body.layout-phone-land.mode-voice.kb-open #voiceInput {
+      padding: 8px 12px 20px;
+      font-size: 16px;
+      line-height: 1.35;
+    }
+    body.layout-phone-land.mode-voice.kb-open .voice-dock {
+      flex: 0 0 236px;
+      max-width: 236px;
+      padding: 6px 6px 0;
+      gap: 6px;
+    }
+    body.layout-phone-land.mode-voice.kb-open .voice-dock > * { min-width: 0; }
+    body.layout-phone-land.mode-voice.kb-open .instant-send {
+      order: 1;
+      position: sticky;
+      top: 0;
+      min-height: 44px;
+      z-index: 4;
+    }
+    body.layout-phone-land.mode-voice.kb-open .instant-send .send-sub { display: none; }
+    body.layout-phone-land.mode-voice.kb-open .instant-send .send-main { font-size: 15px; }
+    body.layout-phone-land.mode-voice.kb-open .draft-edit-bar { order: 2; }
+    body.layout-phone-land.mode-voice.kb-open .voice-stt-row { order: 3; }
+    body.layout-phone-land.mode-voice.kb-open .mac-edit-bar {
+      order: 4;
+      flex-wrap: nowrap;
+      gap: 4px;
+      min-width: 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    body.layout-phone-land.mode-voice.kb-open .draft-edit-bar button,
+    body.layout-phone-land.mode-voice.kb-open .mac-edit-bar button,
+    body.layout-phone-land.mode-voice.kb-open .mac-edit-bar button.wide,
+    body.layout-phone-land.mode-voice.kb-open .mac-edit-bar button#macBackspaceBtn {
+      flex: 0 0 auto;
+      min-width: 44px;
+      min-height: 44px;
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+    body.layout-phone-land.mode-voice.kb-open .voice-stt-row .v-btn {
+      min-width: 0;
+      min-height: 44px;
+      padding: 6px 4px;
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    body.layout-phone-land.mode-voice.kb-open .voice-status { display: none; }
+
     /* Tablet landscape: two panes */
     body.layout-tablet-land { --chrome-rail: 256px; }
     body.layout-tablet-land.mode-cursor .pad {
@@ -3913,7 +4020,7 @@
   <script>
   try {
     'use strict';
-        var MAGICPAD_HTML_REV = '20260924-c4-h812';
+        var MAGICPAD_HTML_REV = '20260924-c5-h813';
 
     const bootBanner = document.getElementById('bootBanner');
     const bootDetail = document.getElementById('bootDetail');
