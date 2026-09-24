@@ -3377,46 +3377,102 @@
       }
     }
 
-    /* Phone landscape: pad + right rail */
+    /* c4: phone landscape. Twelve keys at 40px do not fit a side rail, and the
+       page cannot scroll, so the system row was off-screen. Gesture keys stay
+       in the rail; system keys are one bottom row. Targets stay ≥44px. */
     body.layout-phone-land { --chrome-rail: 92px; }
     body.layout-phone-land.mode-cursor .pad {
-      right: var(--chrome-rail);
+      right: calc(var(--chrome-rail) + env(safe-area-inset-right, 0px));
+      bottom: calc(max(6px, env(safe-area-inset-bottom, 0px)) + 56px);
     }
     body.layout-phone-land.mode-cursor .mode-tabs {
-      right: var(--chrome-rail);
+      right: calc(var(--chrome-rail) + env(safe-area-inset-right, 0px));
     }
     body.layout-phone-land.mode-cursor .pad-chrome {
-      left: auto;
+      left: max(6px, env(safe-area-inset-left, 0px));
       right: max(6px, env(safe-area-inset-right, 0px));
-      top: calc(env(safe-area-inset-top, 0px) + 56px);
-      bottom: max(8px, env(safe-area-inset-bottom, 0px));
-      width: calc(var(--chrome-rail) - 10px);
-      gap: 6px;
+      top: calc(env(safe-area-inset-top, 0px) + 48px);
+      bottom: max(6px, env(safe-area-inset-bottom, 0px));
+      width: auto;
+      gap: 0;
+      pointer-events: none;
     }
     body.layout-phone-land.mode-cursor .pad-chrome::before { display: none; }
-    body.layout-phone-land.mode-cursor .pad-actions {
+    body.layout-phone-land.mode-cursor .pad-actions:not(.system) {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: calc(var(--chrome-rail) - 8px);
       flex-direction: column;
       flex-wrap: nowrap;
-      padding: 5px;
-      gap: 5px;
-      border-radius: 14px;
+      padding: 4px;
+      gap: 4px;
+      border-radius: 16px;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      pointer-events: auto;
     }
-    body.layout-phone-land.mode-cursor .pad-action-btn {
+    body.layout-phone-land.mode-cursor .pad-actions:not(.system) .pad-action-btn {
+      flex: 1 1 0;
       min-width: 0;
       width: 100%;
-      min-height: 40px;
-      padding: 6px 4px;
-      font-size: 11px;
+      min-height: 44px;
+      padding: 4px 2px;
+      font-size: 12px;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      border-radius: 12px;
+      white-space: nowrap;
     }
-    body.layout-phone-land .pad-actions.system {
-      display: flex !important;
+    body.layout-phone-land.mode-cursor .pad-actions.system {
+      position: absolute;
+      left: 0;
+      right: var(--chrome-rail);
+      bottom: 0;
+      display: grid !important;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      width: auto;
+      margin: 0;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 16px;
+      pointer-events: auto;
     }
-    body.layout-phone-land:not(.is-landscape-short) .pad-actions.system {
-      flex-direction: column;
+    /* The guide lives in the same chrome. In flow it is taller than the
+       phone and shoves the system row off a non-scrolling page. */
+    body.layout-phone-land.mode-cursor .guide-sheet:not(.hidden) {
+      position: absolute;
+      left: 0;
+      right: var(--chrome-rail);
+      top: 50px;
+      bottom: 60px;
+      margin: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      z-index: 2;
     }
-    body.layout-phone-land.is-landscape-short .pad-actions.system {
-      flex-direction: row;
-      flex-wrap: wrap;
+    body.layout-phone-land.mode-cursor .pad-actions.system .pad-action-btn {
+      min-width: 0;
+      width: auto;
+      min-height: 44px;
+      padding: 4px 2px;
+      font-size: 12px;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      border-radius: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    @media (max-width: 700px) {
+      body.layout-phone-land.mode-cursor .pad-actions.system .pad-action-btn {
+        font-size: 11px;
+        letter-spacing: -0.04em;
+      }
     }
     body.layout-phone-land .pad-classify-chip,
     body.layout-phone-land .pad-hold-label,
@@ -3563,6 +3619,10 @@
     body.layout-phone-land .pad-axis-hint,
     body.layout-tablet-land .pad-axis-hint {
       bottom: 16px;
+    }
+    body.layout-phone-land.mode-cursor .pad-axis-hint {
+      bottom: calc(max(6px, env(safe-area-inset-bottom, 0px)) + 68px);
+      left: calc((100% - var(--chrome-rail) - env(safe-area-inset-right, 0px) + env(safe-area-inset-left, 0px)) / 2);
     }
     body.mode-voice .pad-axis-hint { display: none !important; }
     body.is-offline .pad-axis-hint,
@@ -3853,7 +3913,7 @@
   <script>
   try {
     'use strict';
-        var MAGICPAD_HTML_REV = '20260924-c3-h809';
+        var MAGICPAD_HTML_REV = '20260924-c4-h812';
 
     const bootBanner = document.getElementById('bootBanner');
     const bootDetail = document.getElementById('bootDetail');
