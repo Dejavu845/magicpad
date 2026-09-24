@@ -2,6 +2,8 @@
 
 LAN trackpad + on-device dictation. Voice goes to the clipboard (optional Cmd+V into the focused app). **No product LLM.**
 
+**Version: MagicPad genX.** Baseline is git tag `genX` (`d58cfa5`, htmlRev `20260924-c8-h816`). Later iterations are **genX-1**, **genX-2**, … — update `VERSION`, tag `genX-N`, do not invent a new codename. See `docs/GENX.md`.
+
 ## Do
 
 - Treat this as a generic Mac input tool

@@ -1,0 +1,11 @@
+MagicPad genX
+iteration: 0
+codename: genX
+git: d58cfa5
+htmlRev: 20260924-c8-h816
+date: 2026-09-24
+
+# Next iterations are numbered on this baseline:
+#   genX-1, genX-2, genX-3, ...
+# Stamp VERSION + git tag genX-N when an iteration lands.
+# Do not skip numbers. Do not rename genX.
